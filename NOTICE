@@ -1,0 +1,26 @@
+Marvin Bot Mini
+Copyright 2026 The Marvin Bot contributors
+https://github.com/kranthie/marvin-bot-mini
+
+Licences by path are listed in README.md ("Licences"). In short: hardware design sources
+(cad/, description/, electrical/, bom/, docs/design/*.svg) are under CERN-OHL-S-2.0
+(LICENSES/CERN-OHL-S-2.0.txt); everything else is under Apache-2.0 (LICENSE).
+
+Hardware (CERN-OHL-S-2.0): this source describes Open Hardware. You may redistribute and modify
+it and make products using it under the terms of the CERN-OHL-S v2. It is distributed WITHOUT
+ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS
+FOR A PARTICULAR PURPOSE; see the CERN-OHL-S v2 for applicable conditions.
+Source location: https://github.com/kranthie/marvin-bot-mini
+As per CERN-OHL-S v2 section 4, should you produce hardware based on this source, you must
+where practicable maintain the Source Location visible on the external case of the product or
+in its documentation.
+
+Third-party material in this repository:
+
+- CODE_OF_CONDUCT.md: the Contributor Covenant 2.1 (https://www.contributor-covenant.org),
+  CC-BY-4.0.
+
+Tools and patterns are carried over from Marvin Bot (https://github.com/kranthie/marvin-bot),
+by the same contributors under the same licences.
+
+Not included: vendor CAD and motion data (obtained by the user under their own licences).

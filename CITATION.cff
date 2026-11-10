@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use Marvin Bot Mini's design or code, please cite it as below."
+title: "Marvin Bot Mini: an open, low-cost 0.6 m servo humanoid"
+authors:
+  - name: "The Marvin Bot contributors"
+repository-code: "https://github.com/kranthie/marvin-bot-mini"
+license:
+  - Apache-2.0
+  - CERN-OHL-S-2.0
+type: software
+keywords: [humanoid robot, open hardware, reinforcement learning, servo, sim-to-real]

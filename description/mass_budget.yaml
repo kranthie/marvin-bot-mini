@@ -1,0 +1,14 @@
+# Mass budget for everything except the servos listed in robot.yaml (those are summed from
+# actuators.yaml by tools/check_description.py). Values in kg.
+# basis: estimate = engineering guess, to be replaced by CAD-computed (cad) and then weighed
+# (weighed). add_on: true for the optional shells, which count towards the limit only.
+
+items:
+  frame:             {mass: 0.55, basis: estimate, note: "printed servo brackets, pelvis, torso frame with the computer and battery bays, feet; PETG with nylon-carbon at the hips and knees"}
+  shells:            {mass: 0.20, basis: estimate, add_on: true, note: "printed clip-on shells: head, chest, thighs, shins, upper arms"}
+  compute:           {mass: 0.25, basis: estimate, note: "Jetson Orin Nano Super developer kit with its heatsink and fan; owned, to weigh"}
+  battery:           {mass: 0.22, basis: estimate, note: "3S 3 Ah Li-ion pack with its protection board"}
+  electronics:       {mass: 0.12, basis: estimate, note: "three USB servo bus adapters, IMU board, power board (fuse, e-stop relay, buck-boost for the computer), USB hub"}
+  harness:           {mass: 0.08, basis: estimate, note: "servo daisy-chain cables, power leads, connectors"}
+  camera:            {mass: 0.01, basis: estimate, note: "wide-angle CSI camera module and cable"}
+  hardware:          {mass: 0.12, basis: estimate, note: "far-side bearings and pins, heat-set inserts, screws"}
