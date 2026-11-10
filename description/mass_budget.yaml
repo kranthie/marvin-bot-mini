@@ -9,7 +9,7 @@ items:
   arm_frame:         {mass: 0.06, basis: estimate, note: "printed upper-arm and forearm brackets with the hand stubs, both arms"}
   head_frame:        {mass: 0.02, basis: estimate, note: "printed neck bracket and head frame with the camera mount"}
   shells:            {mass: 0.20, basis: estimate, add_on: true, note: "printed clip-on shells: head, chest, thighs, shins, upper arms"}
-  compute:           {mass: 0.25, basis: estimate, note: "Jetson Orin Nano Super developer kit with its heatsink and fan; owned, to weigh"}
+  compute:           {mass: 0.25, basis: estimate, note: "Jetson Orin Nano Super developer kit with its heatsink and fan; to weigh"}
   battery:           {mass: 0.22, basis: estimate, note: "3S 3 Ah Li-ion pack with its protection board"}
   electronics:       {mass: 0.12, basis: estimate, note: "three USB servo bus adapters, IMU board, power board (fuse, e-stop relay, buck-boost for the computer), USB hub"}
   harness:           {mass: 0.08, basis: estimate, note: "servo daisy-chain cables, power leads, connectors"}

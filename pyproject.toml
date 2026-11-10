@@ -5,7 +5,7 @@ description = "An open, low-cost 0.6 m, 23-DOF printed humanoid on serial-bus se
 readme = "README.md"
 license = "Apache-2.0 AND CERN-OHL-S-2.0"
 requires-python = ">=3.10"
-dependencies = ["pyyaml>=6"]
+dependencies = ["pyyaml>=6", "openpyxl>=3.1,<4"]  # openpyxl: the BOM workbook
 
 [project.optional-dependencies]
 dev = ["ruff==0.17.3", "pytest"]  # ruff pinned: a new release can change formatting

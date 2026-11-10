@@ -22,7 +22,7 @@ Marvin Bot Mini is built in stages, like Marvin Bot. Each stage ends with a pass
 
 ## Spend
 
-About $1.55k in parts besides the computer (owned; $1.8k with it), at listed prices of 2026-11-10 with the STS3250s from a supplier listing, all in the phase 1 order: `bom/bom.yaml`, totalled by `tools/bom/summary.py`. Not included: the 3D printer, the desktop GPU, shipping, import duties and taxes.
+About $1.37k in parts besides the computer ($1.6k with it), at listed prices of 2026-11-10 with the servos from WowRobo's shop, all in the phase 1 order: `bom/bom.xlsx`, totalled by `tools/bom/summary.py`. Not included: the 3D printer, the desktop GPU, shipping, import duties and taxes.
 
 ## Repository growth
 

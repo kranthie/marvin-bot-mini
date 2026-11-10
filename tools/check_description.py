@@ -7,7 +7,8 @@ Checks:
 - each servo bus's sync write and sync read fit within the bus's share of the control period;
 - the total mass (servos from actuators.yaml plus mass_budget.yaml) is under the hard limit with
   the add-on shells (a warning above the target without them);
-- bom/bom.yaml lists exactly as many of each servo model as robot.yaml uses.
+- bom/bom.xlsx lists exactly as many of each servo model as robot.yaml uses (the qty column;
+  spares are a column of their own).
 
 It also prints each servo model's torque budget under robot.yaml's torque rule.
 
@@ -20,10 +21,10 @@ from collections import Counter
 from pathlib import Path
 
 import yaml
+from bom.book import read_book
 
 ROOT = Path(__file__).resolve().parent.parent
 DESC = ROOT / "description"
-BOM = ROOT / "bom" / "bom.yaml"
 SIDES = ("left", "right")
 
 
@@ -74,7 +75,6 @@ def main() -> int:
     robot = yaml.safe_load((DESC / "robot.yaml").read_text())
     acts = yaml.safe_load((DESC / "actuators.yaml").read_text())
     budget = yaml.safe_load((DESC / "mass_budget.yaml").read_text())
-    bom = yaml.safe_load(BOM.read_text())
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -164,7 +164,7 @@ def main() -> int:
 
     # BOM servo counts
     in_bom: Counter = Counter()
-    for r in bom["lines"]:
+    for r in read_book()["lines"]:
         if r.get("model"):
             in_bom[r["model"]] += int(r["qty"])
     for k in sorted(set(models) | set(in_bom)):

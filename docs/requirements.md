@@ -40,6 +40,6 @@
 | ID | Requirement | Target | Level |
 |---|---|---|---|
 | R40 | Run time | 25 minutes of mixed standing and walking per pack | should |
-| R41 | Cost | about $1.5k in parts, the computer included; priced at $1.8k on 2026-11-10 (decisions) | should |
+| R41 | Cost | about $1.5k in parts, the computer included; priced at $1.6k on 2026-11-10 (decisions) | should |
 | R42 | Fabrication | a desktop 3D printer and hand tools; no machining | must |
 | R43 | Servo loads | peak torque within 60% of stall at the pack's empty voltage, RMS within rated (`robot.yaml` `torque_rule`) | must |

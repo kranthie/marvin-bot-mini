@@ -16,11 +16,11 @@ Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass 
 - [x] Repository, licences, acknowledgements, plan, requirements, safety rules
 - [x] v0.1 joint layout, servo assignment, buses and power (`description/robot.yaml`)
 - [x] Servo specifications and the provisional servo model (`description/actuators.yaml`)
-- [x] Mass budget (2.85 kg bare, 3.05 kg with the shells) and draft BOM (`bom/bom.yaml`)
+- [x] Mass budget (2.85 kg bare, 3.05 kg with the shells) and draft BOM (`bom/bom.xlsx`)
 - [x] Description check: joints, servos, bus timing, torque budget, mass, BOM counts (`tools/check_description.py`)
 - [x] Licence check of the open-source references (`ACKNOWLEDGMENTS.md`)
 - [x] v0.1 layout agreed by the owner
-- [ ] GitHub repository created (owner's OK)
+- [x] GitHub repository created (private until the first public release)
 
 ## Phase 1
 
@@ -30,13 +30,15 @@ Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass 
 - [x] Torque check, the order gate (`sim/mujoco/check_torques.py`): stand, squat, push-up, sit-up, crouch-rise within the rule; shoulder pitch moved to the STS3250 and arms lengthened to 0.24 m (decisions 2026-11-09)
 - [x] Code-CAD first pass of the legs, pelvis and torso (`cad/parts.py`, `cad/build.py`): meshes and masses in the URDF; 2.92 kg bare
 - [x] Renders and animations of the torque check (`tools/render_robot.py`)
-- [x] Priced order list (`bom/bom.yaml`, listings of 2026-11-10): $1,554 to buy (decisions 2026-11-10)
-- [ ] Order placed by the owner
+- [x] Priced order list (`bom/bom.xlsx`, listings of 2026-11-10): $1,370 to buy, servos from WowRobo (decisions 2026-11-10)
+- [ ] Order placed
 - [x] Isaac Lab package (`sim/isaaclab/`): `ServoActuator` (the servo model with a 5-20 ms command delay and per-robot pack voltage and motor-constant spread), Marvin Bot's walking tasks scaled to the mini; robot check passes on Newton and PhysX
 - [x] Mirror rule checked (`sim/mujoco/check_symmetry.py`)
 - [x] Flat walking: v3 passes the MuJoCo cross-check with the servo model (`sim/mujoco/check_policy.py`): walk 0.2 m/s, turn, stop; 0.3 m/s on an empty pack; knees at 60-81% of rated RMS (decisions 2026-11-10)
 - [ ] Flat v3 on a full pack with a short delay: walks 0.26 m/s for 0.20 and holds a knee above the torque rule for 56 ms (randomize the pack voltage in the command response, or train with it observed)
-- [ ] Rough-ground task (configured, not trained), get-up task, the motion pipeline (`sim/motion/`)
+- [x] Motion pipeline (`sim/motion/`): one tracker plays all 25 skills upright in Newton and in the MuJoCo check on the servo model, the hardest-working joint at 46-79% of rated RMS ([skills](skills.md), decisions 2026-11-10)
+- [ ] Squat and pick-up to the reference's depth (the tracker stops 12 cm high, knees at stall)
+- [ ] Rough-ground task (configured, not trained), get-up task
 - [ ] Arms and head CAD; fasteners, horn bolt patterns and bearing seats; stress check of the printed parts (Marvin Bot's `cad/fea.py` with printed-material properties); joint sweep for part clashes
 - [ ] Harness generator (`electrical/`)
 

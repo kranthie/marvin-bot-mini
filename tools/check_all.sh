@@ -6,8 +6,10 @@ ruff check .
 ruff format --check .
 pytest -q tests
 python -m cad.build --check
+python -m cad.export --check
 python tools/check_description.py
 python tools/bom/summary.py
+python tools/bom/book.py --check
 python tools/build_urdf.py --check
 python sim/mujoco/check_torques.py
 python sim/mujoco/check_symmetry.py

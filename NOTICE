@@ -26,4 +26,5 @@ Third-party material in this repository:
 Tools and patterns are carried over from Marvin Bot (https://github.com/kranthie/marvin-bot),
 by the same contributors under the same licences.
 
-Not included: vendor CAD and motion data (obtained by the user under their own licences).
+Not included: vendor CAD and motion data (obtained by the user under their own licences; see
+sim/motion/README.md).
