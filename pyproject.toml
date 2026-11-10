@@ -9,6 +9,8 @@ dependencies = ["pyyaml>=6"]
 
 [project.optional-dependencies]
 dev = ["ruff==0.17.3", "pytest"]  # ruff pinned: a new release can change formatting
+sim = ["mujoco>=3.7", "numpy", "pillow"]  # pillow: tools/render_robot.py
+cad = ["build123d==0.13.0", "cadquery-ocp-novtk==8.0.1.1.0", "trimesh==5.2.0"]  # pinned: cad_model.yaml must reproduce exactly
 
 [build-system]
 requires = ["setuptools>=68"]

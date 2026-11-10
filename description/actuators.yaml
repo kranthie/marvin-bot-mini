@@ -13,8 +13,9 @@
 #   duty = clip(firmware_kp * error_gain * (q_target - q), -max_pwm, max_pwm)
 # so the motor sees duty * v_supply, and the output torque is kt * (duty * v - kt * dq) / R,
 # less friction. kt and R here are effective output-side values derived from the stall torque
-# and no-load speed (kt = v / w0, R = kt * v / stall); error_gain and max_pwm are BAM's
-# oscilloscope figures for the STS3215 7.4 V, assumed to hold for the family. Phase 2 replaces
+# and no-load speed at full duty (kt = max_pwm * v / w0, R = kt * max_pwm * v / stall), so the
+# model reproduces both; error_gain and max_pwm are BAM's oscilloscope figures for the STS3215
+# 7.4 V, assumed to hold for the family. Phase 2 replaces
 # all of it with a pendulum fit (bench/), which adds friction, armature and command delay.
 
 STS3250:
@@ -33,11 +34,12 @@ STS3250:
   envelope_mm: [45.3, 35.8, 24.8]
   verified: manual
   model:
-    kt: 1.528                 # V·s/rad = N·m/A, effective (12 V / 7.85 rad/s)
-    R: 3.74                   # ohm, effective (stall 4.9 N·m at 12 V)
+    kt: 1.482                 # V·s/rad = N·m/A, effective (0.97 x 12 V / 7.85 rad/s)
+    R: 3.520                  # ohm, effective (stall 4.9 N·m at 12 V)
     firmware_kp: 32           # the servo's P coefficient (register value); set and logged
     error_gain: 0.166         # duty per (rad x kp unit), BAM's STS3215 figure
     max_pwm: 0.97
+    armature: 0.02            # kg·m², reflected rotor inertia: BAM's STS3215 fit (0.022), as a placeholder
     basis: datasheet-derived  # replaced by the phase 2 fit
 
 STS3215-C018:
@@ -56,9 +58,10 @@ STS3215-C018:
   envelope_mm: [45.2, 35.0, 24.7]  # same case as the STS3250 (approximate)
   verified: reseller
   model:
-    kt: 2.547                 # effective (12 V / 4.71 rad/s)
-    R: 10.4                   # effective (stall 2.94 N·m at 12 V)
+    kt: 2.470                 # effective (0.97 x 12 V / 4.71 rad/s)
+    R: 9.780                  # effective (stall 2.94 N·m at 12 V)
     firmware_kp: 32
     error_gain: 0.166
     max_pwm: 0.97
+    armature: 0.02            # BAM's STS3215 7.4 V fit: 0.022
     basis: datasheet-derived

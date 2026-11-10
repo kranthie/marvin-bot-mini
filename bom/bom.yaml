@@ -8,8 +8,8 @@
 
 lines:
   # servos
-  - {item: "Feetech STS3250 serial bus servo, 12 V", model: STS3250, group: servos, qty: 12, spares: 2, unit_usd: 45, price_basis: estimate, status: to buy}
-  - {item: "Feetech STS3215 serial bus servo, 12 V (C018, 1:345)", model: STS3215-C018, group: servos, qty: 11, spares: 2, unit_usd: 18, price_basis: reseller, status: to buy}
+  - {item: "Feetech STS3250 serial bus servo, 12 V", model: STS3250, group: servos, qty: 14, spares: 2, unit_usd: 45, price_basis: estimate, status: to buy}
+  - {item: "Feetech STS3215 serial bus servo, 12 V (C018, 1:345)", model: STS3215-C018, group: servos, qty: 9, spares: 2, unit_usd: 18, price_basis: reseller, status: to buy}
   - {item: "USB serial bus servo adapter (half-duplex TTL)", group: servos, qty: 3, spares: 0, unit_usd: 12, price_basis: estimate, status: to buy}
   - {item: "Servo daisy-chain cables, assorted lengths", group: servos, qty: 1, spares: 0, unit_usd: 14, price_basis: estimate, status: to buy}
   # compute and sensing

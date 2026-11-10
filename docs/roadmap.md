@@ -1,11 +1,11 @@
 # Roadmap
 
-Current phase: **0, foundations** (started 2026-11-09). Phases and pass checks are defined in [plan.md](plan.md).
+Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass checks are defined in [plan.md](plan.md).
 
 | Phase | Status |
 |---|---|
-| 0 Foundations | in progress |
-| 1 Robot in simulation | not started |
+| 0 Foundations | done |
+| 1 Robot in simulation | in progress |
 | 2 Servo bench | not started |
 | 3 Print and build | not started |
 | 4 Walking | not started |
@@ -19,17 +19,21 @@ Current phase: **0, foundations** (started 2026-11-09). Phases and pass checks a
 - [x] Mass budget (2.85 kg bare, 3.05 kg with the shells) and draft BOM (`bom/bom.yaml`)
 - [x] Description check: joints, servos, bus timing, torque budget, mass, BOM counts (`tools/check_description.py`)
 - [x] Licence check of the open-source references (`ACKNOWLEDGMENTS.md`)
-- [ ] v0.1 layout agreed by the owner; GitHub repository created (owner's OK)
+- [x] v0.1 layout agreed by the owner
+- [ ] GitHub repository created (owner's OK)
 
 ## Phase 1
 
-- [ ] Copy and adapt from Marvin Bot: `tools/build_urdf.py`, the skeleton file, `cad/build.py`, `cad/covers.py --check`, `cad/fea.py` (printed-material properties), the MuJoCo checks
-- [ ] build123d CAD of the legs, pelvis and torso; URDF from the CAD masses
-- [ ] MuJoCo standing, squat and get-up torque checks under the torque rule (the order gate)
-- [ ] Priced order list for the owner's OK
-- [ ] Servo actuator model in Isaac Lab and MuJoCo (BAM's model structure, unit-tested)
-- [ ] Isaac Lab walking task and first policy; MuJoCo cross-check
-- [ ] Arms and head CAD; harness generator
+- [x] Skeleton (`description/skeleton.yaml`) and URDF generated from the description files (`tools/build_urdf.py`, adapted from Marvin Bot's)
+- [x] Servo model after BAM, shared by MuJoCo and (to come) Isaac Lab (`sim/servo_model.py`), unit-tested against the datasheet stall torque and no-load speed
+- [x] The robot in MuJoCo driven by the servo model (`sim/mujoco/model.py`)
+- [x] Torque check, the order gate (`sim/mujoco/check_torques.py`): stand, squat, push-up, sit-up, crouch-rise within the rule; shoulder pitch moved to the STS3250 and arms lengthened to 0.24 m (decisions 2026-11-09)
+- [x] Code-CAD first pass of the legs, pelvis and torso (`cad/parts.py`, `cad/build.py`): meshes and masses in the URDF; 2.92 kg bare
+- [x] Renders and animations of the torque check (`tools/render_robot.py`)
+- [ ] Priced order list for the owner's OK (prices in `bom/bom.yaml` are estimates)
+- [ ] Isaac Lab: robot config with a servo actuator class, walking task, first policy; MuJoCo cross-check of the policy
+- [ ] Arms and head CAD; fasteners, horn bolt patterns and bearing seats; stress check of the printed parts (Marvin Bot's `cad/fea.py` with printed-material properties); joint sweep for part clashes
+- [ ] Harness generator (`electrical/`)
 
 ## Open items to verify before ordering
 
@@ -37,5 +41,5 @@ Current phase: **0, foundations** (started 2026-11-09). Phases and pass checks a
 2. The Orin Nano Super developer kit's DC input range (forum replies cite 9–20 V and 7–20 V; the carrier board specification decides) and its mass; it sets the buck-boost from the 3S pack.
 3. IMU: a BMI088 on a microcontroller (low latency, raw data) or a BNO085 (fused orientation, simpler).
 4. CSI camera model and its driver on the JetPack release the Orin Nano runs.
-5. Getting up is the worst torque case for the shoulders (STS3215: 1.54 N·m under the rule): if phase 1's check fails, the shoulder pitch moves to an STS3250.
+5. ~~Shoulder torque getting up~~: settled, the shoulder pitch is an STS3250 (decisions 2026-11-09).
 6. The STS3250's 75 rpm no-load speed caps walking speed; phase 1's policy check reports joint speeds against it.

@@ -1,10 +1,18 @@
 # Marvin Bot Mini
 
-![Software: Apache-2.0](https://img.shields.io/badge/software-Apache--2.0-blue) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-blue) ![Stage: foundations](https://img.shields.io/badge/stage-foundations-orange)
+![Software: Apache-2.0](https://img.shields.io/badge/software-Apache--2.0-blue) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-blue) ![Stage: simulation](https://img.shields.io/badge/stage-simulation%20only-orange)
 
 A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m tall and 3 kg, with 23 powered joints on Feetech serial-bus servos, a fully printed frame, and an NVIDIA Jetson Orin Nano Super 8 GB onboard. It is the miniature of [Marvin Bot](https://github.com/kranthie/marvin-bot), the 1.41 m open humanoid, and keeps its architecture: one description drives everything else, the frame is drawn in code, every change is checked in MuJoCo, walking and skills are trained in Isaac Lab and ProtoMotions, and the servos are modelled from bench measurements so the policies carry over to the real robot.
 
-**Status:** phase 0, foundations. Nothing has been built or simulated yet: the joint layout, servo choice, mass budget and a draft BOM are in `description/` and `bom/`. See [docs/roadmap.md](docs/roadmap.md).
+**Status:** phase 1, robot in simulation. Nothing has been built yet. The legs, pelvis and torso are drawn in code-CAD (first pass), the URDF is generated from them, and in MuJoCo the simulated servos hold the robot through standing, squatting and the poses of getting up, within their torque limits on an empty battery. Walking policies are next. See [docs/roadmap.md](docs/roadmap.md).
+
+![Marvin Bot Mini in MuJoCo: first-pass printed parts on the legs, pelvis and torso; the arms and head still estimate boxes](docs/media/robot.png)
+
+| Squat | Rising from a crouch | Sitting up on the hands |
+|---|---|---|
+| ![Squat](docs/media/squat.webp) | ![Rising from a crouch](docs/media/crouch-rise.webp) | ![Sitting up](docs/media/sit-up.webp) |
+
+<sub>MuJoCo renders of the generated model (`tools/render_robot.py`): the torque check's cases, played by the simulated servos on an empty pack.</sub>
 
 **Start here:** this README, then [docs/plan.md](docs/plan.md) (phases), [docs/roadmap.md](docs/roadmap.md) (where things stand) and [docs/decisions.md](docs/decisions.md) (why things are the way they are). To try it: `pip install -e ".[dev]" && python tools/check_description.py`.
 
@@ -26,9 +34,9 @@ A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m ta
 
 | | |
 |---|---|
-| Height, mass | ~0.60 m; ~2.85 kg bare, ~3.05 kg with the add-on shells (estimate, `tools/check_description.py`); 3.0 kg target, 3.5 kg limit |
+| Height, mass | ~0.60 m; 2.92 kg bare, 3.12 kg with the add-on shells (`tools/check_description.py`; legs and torso from the CAD, the rest estimates); 3.0 kg target, 3.5 kg limit |
 | Joints | 6 per leg (hip roll, pitch and yaw, knee, ankle pitch and roll), 4 per arm (shoulder pitch, roll and yaw, elbow), waist yaw, 2 neck; Marvin Bot's joint names |
-| Servos | Feetech STS3250 (4.9 N·m stall) on the legs, STS3215 12 V (2.9 N·m stall) on the arms, waist and neck; magnetic 12-bit encoders, position control |
+| Servos | Feetech STS3250 (4.9 N·m stall) on the legs and shoulder pitch, STS3215 12 V (2.9 N·m stall) on the rest of the arms, the waist and neck; magnetic 12-bit encoders, position control |
 | Buses | three Feetech serial buses at 1 Mbit/s (each leg, the upper body), 50 Hz control |
 | Compute | Jetson Orin Nano Super 8 GB onboard: control loop, policies, light vision; desktop GPU for training |
 | Sensing | pelvis IMU, wide-angle head camera, the servos' position, load, voltage and temperature |
@@ -41,21 +49,24 @@ The joint list, ranges and servos are defined in [description/robot.yaml](descri
 ## Repository layout
 
 ```
-docs/          plan, requirements, roadmap, safety, decisions
+docs/          plan, requirements, roadmap, safety, decisions, media (renders, animations)
 description/   robot.yaml (joints, sizes, servos, buses, power), actuators.yaml (servos and their
-               simulation model), mass_budget.yaml
+               simulation model), mass_budget.yaml, skeleton.yaml (frames, mass placement),
+               cad_model.yaml and urdf/ (generated)
+cad/           code-CAD of the printed parts (build123d) and their mass build
 bom/           bill of materials (bom.yaml)
-tools/         description check, BOM summary, check_all.sh
+sim/           the servo model; mujoco/: the robot in MuJoCo and the torque check
+tools/         description check, URDF builder, BOM summary, renders, check_all.sh
 tests/         unit tests
 ```
 
-Phase 1 adds `cad/` (build123d), the generated URDF, `sim/mujoco/`, `sim/isaaclab/` and `sim/motion/`; phase 2 adds `bench/` and `robot/`; the website follows with the first renders.
+Still to come: `sim/isaaclab/` and `sim/motion/` (phase 1), `bench/` and `robot/` (phase 2), and the website.
 
 ## Checks
 
 ```bash
 python3.12 -m venv .venv && . .venv/bin/activate   # CI uses Python 3.12; 3.10 or later works
-pip install -e ".[dev]"
+pip install -e ".[dev,sim,cad]"
 tools/check_all.sh                  # every check CI runs, in CI's order
 ```
 

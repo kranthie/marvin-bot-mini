@@ -1,0 +1,88 @@
+# Marvin Bot Mini skeleton: link frames, where masses sit, and simple collision shapes.
+# tools/build_urdf.py turns this, robot.yaml, actuators.yaml and mass_budget.yaml into the URDF.
+# Left side and centre only; the right side is mirrored (y negated). SI units.
+#
+# Frames: x forward, y left, z up. The pelvis frame sits at the hip pitch axes, midway between
+# them, at robot.yaml's hip_axis_height above the floor when standing straight.
+# The joint offsets must add up to the lengths in robot.yaml (build_urdf.py checks this):
+#   thigh = hip roll + hip pitch + hip yaw + knee offsets; shin = ankle pitch offset;
+#   upper arm = shoulder roll + shoulder yaw + elbow offsets;
+#   shoulder height = hip axis height + waist + shoulder pitch offsets.
+#
+# Joint axes are chosen so that positive angles follow robot.yaml's range convention
+# (pitch + = flexion, roll + = abduction, yaw + = towards the midline); for the right side the
+# roll and yaw axes are negated by the mirror. v0.1: frames from the design brief, before the
+# CAD; phase 1's CAD replaces the estimate boxes with computed parts.
+
+joints:
+  # hip: roll first (its servo fixed in the pelvis, behind the hip), then pitch on the roll
+  # bracket, then yaw at the top of the thigh, as on Marvin Bot
+  left_hip_roll:       {parent: pelvis,                   child: left_hip_roll_link,       xyz: [0, 0.045, 0],      axis: [1, 0, 0]}
+  left_hip_pitch:      {parent: left_hip_roll_link,       child: left_hip_pitch_link,      xyz: [0, 0, 0],          axis: [0, -1, 0]}
+  left_hip_yaw:        {parent: left_hip_pitch_link,      child: left_thigh_link,          xyz: [0, 0, -0.045],     axis: [0, 0, -1]}
+  left_knee:           {parent: left_thigh_link,          child: left_shin_link,           xyz: [0, 0, -0.075],     axis: [0, 1, 0]}
+  # ankle: pitch then roll on a short cross piece, both servos on the shin and ankle link
+  left_ankle_pitch:    {parent: left_shin_link,           child: left_ankle_link,          xyz: [0, 0, -0.120],     axis: [0, -1, 0]}
+  left_ankle_roll:     {parent: left_ankle_link,          child: left_foot_link,           xyz: [0, 0, 0],          axis: [1, 0, 0]}
+  waist_yaw:           {parent: pelvis,                   child: torso_link,               xyz: [0, 0, 0.045],      axis: [0, 0, 1]}
+  neck_yaw:            {parent: torso_link,               child: neck_link,                xyz: [0, 0, 0.180],      axis: [0, 0, 1]}
+  neck_pitch:          {parent: neck_link,                child: head_link,                xyz: [0, 0, 0.025],      axis: [0, 1, 0]}
+  left_shoulder_pitch: {parent: torso_link,               child: left_shoulder_pitch_link, xyz: [0, 0.070, 0.145],  axis: [0, -1, 0]}
+  left_shoulder_roll:  {parent: left_shoulder_pitch_link, child: left_shoulder_roll_link,  xyz: [0, 0.025, 0],      axis: [1, 0, 0]}
+  left_shoulder_yaw:   {parent: left_shoulder_roll_link,  child: left_upper_arm_link,      xyz: [0, 0, -0.045],     axis: [0, 0, -1]}
+  left_elbow:          {parent: left_upper_arm_link,      child: left_forearm_link,        xyz: [0, 0, -0.055],     axis: [0, -1, 0]}
+
+# Servo cases sit on the parent link of the joint they drive, centred on the joint, unless
+# listed here (xyz in that link's frame). The case's shaft runs along the joint axis.
+motor_mounts:
+  left_hip_roll:       {link: pelvis,                  xyz: [-0.030, 0.045, 0]}       # behind the hip, on its own axis
+  left_hip_yaw:        {link: left_thigh_link,         xyz: [0, 0, -0.012]}           # at the top of the thigh, output up
+  left_knee:           {link: left_thigh_link,         xyz: [0, 0, -0.075]}
+  left_ankle_pitch:    {link: left_shin_link,          xyz: [0, 0, -0.120]}
+  left_ankle_roll:     {link: left_ankle_link,         xyz: [-0.015, 0, -0.010]}      # behind and below the pitch axis
+  waist_yaw:           {link: pelvis,                  xyz: [0, 0, 0.025]}
+  neck_yaw:            {link: torso_link,              xyz: [0, 0, 0.160]}
+  left_shoulder_pitch: {link: torso_link,              xyz: [0, 0.055, 0.145]}        # in the torso
+  left_shoulder_yaw:   {link: left_shoulder_roll_link, xyz: [0, 0, -0.030]}
+
+# Structure and equipment, as boxes. "budget" names the mass_budget.yaml item each mass comes
+# from; the masses of each item (both sides counted) must add up to the budget figure. The
+# add-on shells are not placed until the CAD draws them.
+bodies:
+  - {link: pelvis,                   budget: leg_frame,   mass: 0.060, xyz: [-0.010, 0, 0.010],  size: [0.07, 0.11, 0.04]}
+  - {link: left_hip_roll_link,       budget: leg_frame,   mass: 0.020, xyz: [0, 0, -0.010],      size: [0.05, 0.03, 0.03]}
+  - {link: left_hip_pitch_link,      budget: leg_frame,   mass: 0.020, xyz: [0, 0, -0.025],      size: [0.04, 0.04, 0.04]}
+  - {link: left_thigh_link,          budget: leg_frame,   mass: 0.040, xyz: [0, 0, -0.040],      size: [0.04, 0.05, 0.07]}
+  - {link: left_shin_link,           budget: leg_frame,   mass: 0.035, xyz: [0, 0, -0.060],      size: [0.04, 0.05, 0.10]}
+  - {link: left_ankle_link,          budget: leg_frame,   mass: 0.010, xyz: [0, 0, -0.005],      size: [0.03, 0.03, 0.02]}
+  - {link: left_foot_link,           budget: leg_frame,   mass: 0.030, xyz: [0.012, 0, -0.045],  size: [0.10, 0.055, 0.008]}
+  - {link: torso_link,               budget: torso_frame, mass: 0.100, xyz: [0, 0, 0.090],       size: [0.08, 0.13, 0.16]}
+  - {link: head_link,                budget: head_frame,  mass: 0.020, xyz: [0.005, 0, 0.030],   size: [0.07, 0.07, 0.07]}
+  - {link: left_upper_arm_link,      budget: arm_frame,   mass: 0.015, xyz: [0, 0, -0.025],      size: [0.03, 0.03, 0.05]}
+  - {link: left_forearm_link,        budget: arm_frame,   mass: 0.015, xyz: [0, 0, -0.070],      size: [0.03, 0.03, 0.14]}
+  - {link: torso_link,               budget: compute,     mass: 0.250, xyz: [0.012, 0, 0.080],   size: [0.035, 0.10, 0.08]}   # dev kit standing on edge, heatsink forward
+  - {link: torso_link,               budget: battery,     mass: 0.220, xyz: [-0.030, 0, 0.050],  size: [0.025, 0.07, 0.06]}   # low at the back
+  - {link: pelvis,                   budget: electronics, mass: 0.040, xyz: [-0.005, 0, 0.020],  size: [0.04, 0.05, 0.02]}   # IMU and leg bus adapters
+  - {link: torso_link,               budget: electronics, mass: 0.080, xyz: [-0.030, 0, 0.120],  size: [0.025, 0.08, 0.05]}  # power board, hub, upper bus adapter
+  - {link: head_link,                budget: camera,      mass: 0.010, xyz: [0.035, 0, 0.035],   size: [0.01, 0.03, 0.03]}
+  # harness and hardware, spread over the links they belong to (left mirrored)
+  - {link: torso_link,               budget: harness,     mass: 0.020, xyz: [0, 0, 0.090],       size: [0.08, 0.13, 0.16]}
+  - {link: left_thigh_link,          budget: harness,     mass: 0.010, xyz: [-0.015, 0, -0.040], size: [0.01, 0.02, 0.07]}
+  - {link: left_shin_link,           budget: harness,     mass: 0.010, xyz: [-0.015, 0, -0.060], size: [0.01, 0.02, 0.10]}
+  - {link: left_upper_arm_link,      budget: harness,     mass: 0.010, xyz: [-0.012, 0, -0.025], size: [0.01, 0.02, 0.05]}
+  - {link: pelvis,                   budget: hardware,    mass: 0.020, xyz: [-0.010, 0, 0.010],  size: [0.07, 0.11, 0.04]}
+  - {link: torso_link,               budget: hardware,    mass: 0.030, xyz: [0, 0, 0.090],       size: [0.08, 0.13, 0.16]}
+  - {link: left_thigh_link,          budget: hardware,    mass: 0.015, xyz: [0, 0, -0.040],      size: [0.04, 0.05, 0.07]}
+  - {link: left_shin_link,           budget: hardware,    mass: 0.015, xyz: [0, 0, -0.060],      size: [0.04, 0.05, 0.10]}
+  - {link: left_upper_arm_link,      budget: hardware,    mass: 0.005, xyz: [0, 0, -0.025],      size: [0.03, 0.03, 0.05]}
+
+# Collision shapes (boxes). Only these touch the floor or each other in simulation.
+collisions:
+  - {link: pelvis,              xyz: [-0.015, 0, 0.010],  size: [0.08, 0.13, 0.05]}
+  - {link: left_thigh_link,     xyz: [0, 0, -0.040],      size: [0.045, 0.05, 0.06]}
+  - {link: left_shin_link,      xyz: [0, 0, -0.060],      size: [0.045, 0.05, 0.09]}
+  - {link: left_foot_link,      xyz: [0.012, 0, -0.045],  size: [0.10, 0.055, 0.010]}
+  - {link: torso_link,          xyz: [0, 0, 0.090],       size: [0.09, 0.14, 0.15]}
+  - {link: head_link,           xyz: [0.005, 0, 0.030],   size: [0.075, 0.075, 0.075]}
+  - {link: left_upper_arm_link, xyz: [0, 0, -0.025],      size: [0.04, 0.04, 0.06]}
+  - {link: left_forearm_link,   xyz: [0, 0, -0.070],      size: [0.035, 0.035, 0.14]}

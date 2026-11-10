@@ -4,7 +4,10 @@
 # (weighed). add_on: true for the optional shells, which count towards the limit only.
 
 items:
-  frame:             {mass: 0.55, basis: estimate, note: "printed servo brackets, pelvis, torso frame with the computer and battery bays, feet; PETG with nylon-carbon at the hips and knees"}
+  leg_frame:         {mass: 0.4333, basis: cad, note: "cad/parts.py first pass: pelvis shell, hip roll and pitch brackets, thighs, shins, ankle cross pieces (nylon-carbon), feet (PETG) with TPU soles; no fasteners"}
+  torso_frame:       {mass: 0.0731, basis: cad, note: "cad/parts.py first pass: floor on the waist horn, side frames with the shoulder pitch servos, top plate, back plate (PETG)"}
+  arm_frame:         {mass: 0.06, basis: estimate, note: "printed upper-arm and forearm brackets with the hand stubs, both arms"}
+  head_frame:        {mass: 0.02, basis: estimate, note: "printed neck bracket and head frame with the camera mount"}
   shells:            {mass: 0.20, basis: estimate, add_on: true, note: "printed clip-on shells: head, chest, thighs, shins, upper arms"}
   compute:           {mass: 0.25, basis: estimate, note: "Jetson Orin Nano Super developer kit with its heatsink and fan; owned, to weigh"}
   battery:           {mass: 0.22, basis: estimate, note: "3S 3 Ah Li-ion pack with its protection board"}
