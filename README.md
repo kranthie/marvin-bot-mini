@@ -29,7 +29,7 @@ A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m ta
 - Play skills learned by tracking human motion (gestures, squats, a kick, a dance) with the same pipeline as Marvin Bot: text-to-motion with Kimodo, retargeting, a ProtoMotions tracker.
 - See with a head camera: walk to and kick a ball, follow a person or a tag.
 - Run its policies onboard on the Orin Nano at 50 Hz; train on a desktop GPU.
-- Stay cheap and quick to build: about $1.4k in parts besides the computer, a desktop 3D printer and no machining.
+- Stay cheap and quick to build: about $1.55k in parts besides the computer ($1.8k with it, `bom/bom.yaml`), a desktop 3D printer and no machining.
 - Be fully open: CAD, electronics, firmware, simulation and training code.
 
 ## Design at a glance

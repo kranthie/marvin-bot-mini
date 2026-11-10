@@ -30,7 +30,8 @@ Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass 
 - [x] Torque check, the order gate (`sim/mujoco/check_torques.py`): stand, squat, push-up, sit-up, crouch-rise within the rule; shoulder pitch moved to the STS3250 and arms lengthened to 0.24 m (decisions 2026-11-09)
 - [x] Code-CAD first pass of the legs, pelvis and torso (`cad/parts.py`, `cad/build.py`): meshes and masses in the URDF; 2.92 kg bare
 - [x] Renders and animations of the torque check (`tools/render_robot.py`)
-- [ ] Priced order list for the owner's OK (prices in `bom/bom.yaml` are estimates)
+- [x] Priced order list (`bom/bom.yaml`, listings of 2026-11-10): $1,554 to buy (decisions 2026-11-10)
+- [ ] Order placed by the owner
 - [x] Isaac Lab package (`sim/isaaclab/`): `ServoActuator` (the servo model with a 5-20 ms command delay and per-robot pack voltage and motor-constant spread), Marvin Bot's walking tasks scaled to the mini; robot check passes on Newton and PhysX
 - [x] Mirror rule checked (`sim/mujoco/check_symmetry.py`)
 - [x] Flat walking: v3 passes the MuJoCo cross-check with the servo model (`sim/mujoco/check_policy.py`): walk 0.2 m/s, turn, stop; 0.3 m/s on an empty pack; knees at 60-81% of rated RMS (decisions 2026-11-10)

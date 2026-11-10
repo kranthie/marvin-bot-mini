@@ -2,6 +2,10 @@
 
 Settled decisions, newest first, with the reason and the alternatives considered.
 
+## 2026-11-10: the order priced: $1,554 to buy, STS3250s from a supplier listing
+
+Every line of `bom/bom.yaml` priced from listings of 2026-11-10, with its source. The STS3250 costs $74-97 at retail, not the $45 estimated: at retail the order came to $2,002. They come from a supplier listing at about $46 instead (owner's choice), for $1,554 to buy and $1,803 with the computer, against R41's $1.5k. The rest came close to the estimates: STS3215-C018 $27.99, servo adapters $9.05, BNO085 IMU $29.50 (on the computer's UART, no microcontroller), wide-angle IMX219 camera $25.99, 3S 3.5 Ah packs $37.28 (167 g, under the 0.22 kg budgeted; no protection board stated, so a 3S BMS each), charger $59.95, buck-boost $8.90. Two spares of each servo, as planned. Shipping, duties and taxes are not included. Alternatives: retail STS3250s ($2,002), a bench pair first and the bulk after the bench fit, and fewer spares (about $50-100 less each).
+
 ## 2026-11-10: first walking policy (flat v3); the torque rule allows brief saturation when moving
 
 Flat v2 (3000 iterations with the rescaled rewards) walked, turned and stopped in the MuJoCo cross-check, but at 4.5 steps a second with 10 cm steps and 1.5 cm of foot lift, its knees and hip pitch peaking at up to 171% of the torque rule's 60%-of-stall limit, and its knee at 109% of rated RMS when walking at 0.3 m/s. Flat v3 continued from v2 for 2000 iterations with a penalty on torque above the rule (`torque_over_rule`) and twice the foot-clearance weight: 2.3 steps a second, 19 cm steps, 3.4 cm of lift (target 3.5), knees at 60% of rated RMS walking at 0.2 m/s and 81% at 0.3 m/s. Its peaks still reach 126-183% of the rule, but for under 1% of the time and at most 20 ms at a stretch, at touchdowns and stops: a position servo saturates at stall whenever its target steps more than about 10° (0.97 duty at 32 × 0.166 per radian), which the model reproduces, capped at stall for the pack's voltage.
