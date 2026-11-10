@@ -14,9 +14,10 @@ Marvin Bot Mini is designed from scratch, but it learns from open projects, publ
 - **Berkeley Humanoid Lite** (UC Berkeley Hybrid Robotics): https://github.com/HybridRobotics/Berkeley-Humanoid-Lite (MIT). Lessons on printed structures that route load through metal fasteners.
 - **BAM: Better Actuator Models** (Rhoban; M. Duclusaud, G. Passault): https://github.com/Rhoban/bam (Apache-2.0) and "Extended Friction Models for the Physics Simulation of Servo Actuators", arXiv:2410.08650. The provisional servo model's structure (firmware duty cycle, effective torque constant and resistance, friction) and its STS3215 firmware-gain figures (`description/actuators.yaml`); the pendulum fitting method planned for phase 2.
 
-## Software and models (planned, as in Marvin Bot)
+## Software and models
 
-- **NVIDIA Isaac Lab** (https://github.com/isaac-sim/IsaacLab, BSD-3-Clause) and **Newton**: training environments.
+- **NVIDIA Isaac Lab** (https://github.com/isaac-sim/IsaacLab, BSD-3-Clause) and **Newton**: training environments. The walking tasks, PPO settings and terrain config in `sim/isaaclab/` come from Marvin Bot's, which adapt Isaac Lab's G1 velocity tasks; those files keep Isaac Lab's notice (`LICENSES/BSD-3-Clause-IsaacLab.txt`).
+- **rsl_rl** (ETH Zurich Robotic Systems Lab, https://github.com/leggedrobotics/rsl_rl, BSD-3-Clause): PPO training, used as a library.
 - **MuJoCo** (Google DeepMind, https://github.com/google-deepmind/mujoco, Apache-2.0): the simulation cross-checks.
 - **ProtoMotions** (NVIDIA, https://github.com/NVlabs/ProtoMotions, Apache-2.0), **PyRoki** (https://github.com/chungmin99/pyroki) and **Kimodo** (https://github.com/nv-tlabs/kimodo): the motion pipeline.
 - **LeRobot** (Hugging Face, https://github.com/huggingface/lerobot, Apache-2.0): its Feetech bus driver is the reference for the onboard driver (phase 2).

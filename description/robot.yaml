@@ -36,6 +36,7 @@ dimensions:
 # Default stance (degrees, same values on both sides): the pose the walking policies act around.
 # A slight crouch keeps the knee servos off their end of travel and gives the policy room.
 stance: {hip_pitch: 10, knee: 20, ankle_pitch: 10, shoulder_roll: 8, elbow: 20}
+stance_pelvis_height: 0.286   # pelvis frame above the floor in the stance (MuJoCo, feet flat)
 
 joints:
   # legs, pelvis outwards: hip roll, then pitch, then yaw, as on Marvin Bot; listed in the order
@@ -92,10 +93,13 @@ servo_bus:
     "{side}_leg": {type: serial}
     upper:        {type: serial}
 
-# Torque rule for the servos (Marvin Bot's is 70% of peak for its motors): a joint's peak torque
-# stays within this share of stall at the pack's empty voltage, and its RMS torque over a task
-# within the servo's rated torque. Phase 1's MuJoCo checks apply it.
-torque_rule: {peak_share_of_stall: 0.6, at: v_empty, rms_within_rated: true}
+# Torque rule for the servos (Marvin Bot's is 70% of peak for its motors). Held poses
+# (sim/mujoco/check_torques.py): a joint's peak torque stays within this share of stall at the
+# pack's empty voltage. Moving (walking policies, sim/mujoco/check_policy.py): a position servo
+# saturates at stall for a moment whenever its target steps more than about 10°, so brief
+# saturation is allowed, but a joint stays above that limit no longer than max_burst_s at a
+# stretch and no more than max_share of a segment. Always: RMS torque within the servo's rating.
+torque_rule: {peak_share_of_stall: 0.6, at: v_empty, rms_within_rated: true, moving: {max_burst_s: 0.05, max_share: 0.05}}
 
 power:
   pack: {cells: 3, chemistry: li-ion, capacity_ah: 3.0, v_full: 12.6, v_nominal: 11.1, v_empty: 10.5}

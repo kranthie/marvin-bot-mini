@@ -2,6 +2,18 @@
 
 Settled decisions, newest first, with the reason and the alternatives considered.
 
+## 2026-11-10: first walking policy (flat v3); the torque rule allows brief saturation when moving
+
+Flat v2 (3000 iterations with the rescaled rewards) walked, turned and stopped in the MuJoCo cross-check, but at 4.5 steps a second with 10 cm steps and 1.5 cm of foot lift, its knees and hip pitch peaking at up to 171% of the torque rule's 60%-of-stall limit, and its knee at 109% of rated RMS when walking at 0.3 m/s. Flat v3 continued from v2 for 2000 iterations with a penalty on torque above the rule (`torque_over_rule`) and twice the foot-clearance weight: 2.3 steps a second, 19 cm steps, 3.4 cm of lift (target 3.5), knees at 60% of rated RMS walking at 0.2 m/s and 81% at 0.3 m/s. Its peaks still reach 126-183% of the rule, but for under 1% of the time and at most 20 ms at a stretch, at touchdowns and stops: a position servo saturates at stall whenever its target steps more than about 10° (0.97 duty at 32 × 0.166 per radian), which the model reproduces, capped at stall for the pack's voltage.
+
+So the rule now has two parts (`robot.yaml` `torque_rule`, owner's decision): held poses keep the 60%-of-stall peak (the order gate), and moving policies may saturate briefly but stay above that limit no longer than 50 ms at a stretch and no more than 5% of a segment; RMS within rating applies to both. Alternatives: capping each servo's torque-limit register at about 60% and modelling it (the rule holds by construction, but a weaker robot for getting up and pushes) and keeping the strict peak with a stronger penalty and filtered targets (more training, likely a stiffer gait).
+
+v3 passes the cross-check at 11.1 V with a 10 ms delay, on an empty pack with 20 ms, at full sensor noise, and walking at 0.3 m/s on an empty pack. On a full pack (12.6 V) with a 5 ms delay it walks 0.26 m/s for 0.20 and holds a knee above the rule for 56 ms: open.
+
+## 2026-11-09: walking rewards rescaled for servos; flat v1 learned to fall
+
+Marvin Bot's walking task carried over with its weights, and flat v1 (3000 iterations) learned to fall: every episode ended on tilt within 12.6 control steps (0.25 s), faster than random actions fall (33 steps). The heat penalty (`sustained_torque`, the running average of (torque / rated)² over 0.8) cost about 6 a second, against at most about 2.5 a second from command tracking, so ending the episode was the best return. A servo on a light limb saturates near stall, about three times its rated torque, whenever the policy jitters, so the term that only shaped Marvin Bot's stair climbing dominated here. Its weight is now a tenth of Marvin Bot's (−0.1 flat, −0.2 rough). Two other widths were still Max-sized: the speed-tracking width (0.25 m/s, as wide as the mini's whole command range, so standing still earned a third of the walking reward; now 0.1 m/s) and the foot-clearance width (scaled by (3.5 / 8)² with the 3.5 cm lift). Zero actions hold the stance in the training environment with the upper body moving (0 of 256 robots fell in 3 s).
+
 ## 2026-11-09: the order gate passes; shoulder pitch on the STS3250; longer arms
 
 `sim/mujoco/check_torques.py` holds the robot with its simulated servos on an empty pack (10.5 V) through five cases: standing, a squat to knee 120° and back with the centre of mass kept over the feet, a push-up face down on the hands and toes, sitting leaning far back on the hands, and rising from a hands-down crouch (knee 130°). With the first CAD pass (2.92 kg bare) every joint stays within the torque rule; the worst are the elbows in the push-up (0.72 N·m, 47% of the rule's 1.54 N·m) and the shoulder pitch in the sit-up (1.13 N·m, 44% of 2.57 N·m). Two changes came out of it:

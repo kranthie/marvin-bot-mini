@@ -10,3 +10,4 @@ python tools/check_description.py
 python tools/bom/summary.py
 python tools/build_urdf.py --check
 python sim/mujoco/check_torques.py
+python sim/mujoco/check_symmetry.py

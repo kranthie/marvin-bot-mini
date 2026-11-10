@@ -4,9 +4,11 @@
 
 A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m tall and 3 kg, with 23 powered joints on Feetech serial-bus servos, a fully printed frame, and an NVIDIA Jetson Orin Nano Super 8 GB onboard. It is the miniature of [Marvin Bot](https://github.com/kranthie/marvin-bot), the 1.41 m open humanoid, and keeps its architecture: one description drives everything else, the frame is drawn in code, every change is checked in MuJoCo, walking and skills are trained in Isaac Lab and ProtoMotions, and the servos are modelled from bench measurements so the policies carry over to the real robot.
 
-**Status:** phase 1, robot in simulation. Nothing has been built yet. The legs, pelvis and torso are drawn in code-CAD (first pass), the URDF is generated from them, and in MuJoCo the simulated servos hold the robot through standing, squatting and the poses of getting up, within their torque limits on an empty battery. Walking policies are next. See [docs/roadmap.md](docs/roadmap.md).
+**Status:** phase 1, robot in simulation. Nothing has been built yet. The legs, pelvis and torso are drawn in code-CAD (first pass), the URDF is generated from them, and in MuJoCo the simulated servos hold the robot through standing, squatting and the poses of getting up, within their torque limits on an empty battery. A first walking policy, trained in Isaac Lab on the servo model, walks, turns and stops in a MuJoCo cross-check with the same model, on an empty or a nominal pack. See [docs/roadmap.md](docs/roadmap.md).
 
 ![Marvin Bot Mini in MuJoCo: first-pass printed parts on the legs, pelvis and torso; the arms and head still estimate boxes](docs/media/robot.png)
+
+![Flat walking v3 in the MuJoCo cross-check: stand, walk 0.2 m/s, turn, walk while turning, stop](docs/media/flat_walk.webp)
 
 | Squat | Rising from a crouch | Sitting up on the hands |
 |---|---|---|
@@ -55,12 +57,13 @@ description/   robot.yaml (joints, sizes, servos, buses, power), actuators.yaml 
                cad_model.yaml and urdf/ (generated)
 cad/           code-CAD of the printed parts (build123d) and their mass build
 bom/           bill of materials (bom.yaml)
-sim/           the servo model; mujoco/: the robot in MuJoCo and the torque check
+sim/           the servo model; mujoco/: the robot in MuJoCo, the torque, symmetry and policy
+               checks; isaaclab/: the Isaac Lab package (servo actuator, walking tasks)
 tools/         description check, URDF builder, BOM summary, renders, check_all.sh
 tests/         unit tests
 ```
 
-Still to come: `sim/isaaclab/` and `sim/motion/` (phase 1), `bench/` and `robot/` (phase 2), and the website.
+Still to come: `sim/motion/` (phase 1), `bench/` and `robot/` (phase 2), and the website.
 
 ## Checks
 
@@ -84,6 +87,7 @@ Copyright 2026 The Marvin Bot contributors.
 |---|---|
 | `cad/`, `description/`, `electrical/`, `bom/`, `docs/design/*.svg` | [CERN-OHL-S-2.0](LICENSES/CERN-OHL-S-2.0.txt) (hardware) |
 | Everything else: `tools/`, `sim/`, `robot/`, `bench/`, `tests/`, the documentation | [Apache-2.0](LICENSE) |
+| Portions of `sim/isaaclab/` marked in their headers | also BSD-3-Clause, © The Isaac Lab Project Developers ([text](LICENSES/BSD-3-Clause-IsaacLab.txt)) |
 
 [NOTICE](NOTICE) lists third-party material. Everything is provided as is, without warranty, as these licences state.
 

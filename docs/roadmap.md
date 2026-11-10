@@ -31,7 +31,11 @@ Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass 
 - [x] Code-CAD first pass of the legs, pelvis and torso (`cad/parts.py`, `cad/build.py`): meshes and masses in the URDF; 2.92 kg bare
 - [x] Renders and animations of the torque check (`tools/render_robot.py`)
 - [ ] Priced order list for the owner's OK (prices in `bom/bom.yaml` are estimates)
-- [ ] Isaac Lab: robot config with a servo actuator class, walking task, first policy; MuJoCo cross-check of the policy
+- [x] Isaac Lab package (`sim/isaaclab/`): `ServoActuator` (the servo model with a 5-20 ms command delay and per-robot pack voltage and motor-constant spread), Marvin Bot's walking tasks scaled to the mini; robot check passes on Newton and PhysX
+- [x] Mirror rule checked (`sim/mujoco/check_symmetry.py`)
+- [x] Flat walking: v3 passes the MuJoCo cross-check with the servo model (`sim/mujoco/check_policy.py`): walk 0.2 m/s, turn, stop; 0.3 m/s on an empty pack; knees at 60-81% of rated RMS (decisions 2026-11-10)
+- [ ] Flat v3 on a full pack with a short delay: walks 0.26 m/s for 0.20 and holds a knee above the torque rule for 56 ms (randomize the pack voltage in the command response, or train with it observed)
+- [ ] Rough-ground task (configured, not trained), get-up task, the motion pipeline (`sim/motion/`)
 - [ ] Arms and head CAD; fasteners, horn bolt patterns and bearing seats; stress check of the printed parts (Marvin Bot's `cad/fea.py` with printed-material properties); joint sweep for part clashes
 - [ ] Harness generator (`electrical/`)
 
@@ -42,4 +46,4 @@ Current phase: **1, robot in simulation** (started 2026-11-09). Phases and pass 
 3. IMU: a BMI088 on a microcontroller (low latency, raw data) or a BNO085 (fused orientation, simpler).
 4. CSI camera model and its driver on the JetPack release the Orin Nano runs.
 5. ~~Shoulder torque getting up~~: settled, the shoulder pitch is an STS3250 (decisions 2026-11-09).
-6. The STS3250's 75 rpm no-load speed caps walking speed; phase 1's policy check reports joint speeds against it.
+6. The STS3250's 75 rpm no-load speed caps walking speed: flat v3 walks 0.3-0.36 m/s within its ratings; faster is untried.

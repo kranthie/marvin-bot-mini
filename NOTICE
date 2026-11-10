@@ -17,6 +17,9 @@ in its documentation.
 
 Third-party material in this repository:
 
+- sim/isaaclab/ (files marked in their headers): portions adapted from Isaac Lab
+  (https://github.com/isaac-sim/IsaacLab), Copyright (c) 2022-2026, The Isaac Lab Project
+  Developers, BSD-3-Clause (LICENSES/BSD-3-Clause-IsaacLab.txt), by way of Marvin Bot.
 - CODE_OF_CONDUCT.md: the Contributor Covenant 2.1 (https://www.contributor-covenant.org),
   CC-BY-4.0.
 
