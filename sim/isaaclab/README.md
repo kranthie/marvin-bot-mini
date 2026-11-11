@@ -48,7 +48,9 @@ uv run --no-sync python <repo>/sim/isaaclab/check_robot.py       # Newton
 uv run --no-sync python <repo>/sim/isaaclab/check_robot.py --backend physx
 ```
 
-Results (2026-11-09, the 2.92 kg model):
+Results (2026-11-09, the 2.92 kg model; on 2026-11-11 the 27-joint, 3.51 kg model passes the
+same checks, its links within 0.7 mm of MuJoCo's, the stance held with the knees at 13% of the
+rule):
 
 | Check | Newton (MuJoCo-Warp) | PhysX |
 | --- | --- | --- |
@@ -92,5 +94,21 @@ default seed. Trained policies are not committed.
 | flat v2 | 3000 iterations from scratch, rescaled rewards | walks, turns and stops; 4.5 steps/s, 10 cm steps, 1.5 cm lift; knees up to 171% of the torque rule's peak, 109% of rated RMS at 0.3 m/s |
 | flat v3 | 2000 iterations from v2, torque-rule penalty, clearance weight 2 | passes at 11.1 V / 10 ms, 10.5 V / 20 ms, full noise, 0.3 m/s on 10.5 V; 2.3 steps/s, 19 cm steps, 3.4 cm lift, knees 60% of rated RMS at 0.2 m/s and 81% at 0.3 m/s; above the torque rule under 1% of the time, at most 20 ms. Fails on 12.6 V / 5 ms: 0.26 m/s for 0.20, a knee above the rule for 56 ms |
 
+| flat v4 | the 27-joint, 3.51 kg model (wrists and pincers, the redrawn frame): 3000 iterations from scratch without the torque penalties, 2000 more with them, 1500 more with a broader clearance reward | passes at 11.1 V / 10 ms, 10.5 V / 20 ms with 0.3 m/s, and with the shells on (3.81 kg); 3.2 steps/s, 14 cm steps, 2.3 cm lift, knees 64% of rated RMS at 0.2 m/s and 72% at 0.3 m/s; above the torque rule 1.4% of the time, at most 46 ms. Fails on 12.6 V / 5 ms: a knee above the rule for 64 ms. Re-checked on the strengthened frame (3.59 kg, 3.86 kg with the shells): passes the same, except with the shells on an empty pack at 0.3 m/s (an ankle pitch above the rule for 60 ms) |
+
 The checkpoint of flat v3 resumed flat v2 (`--checkpoint` with v2's `model_2999.pt`); the task
-config at each stage is in the git history.
+config at each stage is in the git history. Flat v4 is staged the same way, but on the command
+line, the task config left as it is (its last stage's): the robot's policy has to be trained
+again from scratch whenever its joints change (the observations hold every joint), and trained
+with the torque penalties on from the start, the heavier robot learned to throw itself over
+within 0.2 s, as flat v1 did, the falls ending the penalties sooner. And the sharp clearance
+reward (std 2e-4) pays only near the 3.5 cm target, so a policy that shuffles with 0.5 cm of lift
+gets nothing from it; a broader one (std 2e-3) taught it to step:
+
+```bash
+uv run --no-sync isaaclab train --rl_library rsl_rl --task MarvinBotMini-Velocity-Flat --num_envs 4096 --max_iterations 3000 \
+    env.rewards.torque_over_rule.weight=0.0 env.rewards.foot_clearance.weight=1.0 env.rewards.sustained_torque.weight=0.0
+uv run --no-sync isaaclab train ... --max_iterations 2000 --checkpoint <stage 1>/model_2999.pt
+uv run --no-sync isaaclab train ... --max_iterations 1500 --checkpoint <stage 2>/model_4998.pt \
+    env.rewards.foot_clearance.params.std=0.002
+```

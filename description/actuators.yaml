@@ -32,6 +32,10 @@ STS3250:
   interface: serial
   protocols: [feetech_sts]
   envelope_mm: [45.3, 35.8, 24.8]
+  # A box servo: the output shaft runs along its 35.8 mm height, the spline and horn 5.8 mm above
+  # the case's top face; the shaft sits 11.5 mm off the case centre along its 45.3 mm length
+  # (Marvin Bot's figures, approximate, from the datasheet outline). Mounting holes at both ends.
+  shape: {box: [45.3, 24.8], axial: [-30.0, 5.8], shaft_offset: 11.5}
   verified: manual
   model:
     kt: 1.482                 # V·s/rad = N·m/A, effective (0.97 x 12 V / 7.85 rad/s)
@@ -56,6 +60,7 @@ STS3215-C018:
   interface: serial
   protocols: [feetech_sts]
   envelope_mm: [45.2, 35.0, 24.7]  # same case as the STS3250 (approximate)
+  shape: {box: [45.3, 24.8], axial: [-30.0, 5.8], shaft_offset: 11.5}  # taken as the STS3250's; to measure
   verified: reseller
   model:
     kt: 2.470                 # effective (0.97 x 12 V / 4.71 rad/s)

@@ -1,7 +1,8 @@
 """Pack the generated robot model into one script file for the site's 3-D viewers.
 
-Reads description/urdf/marvin_bot_mini.urdf, description/cad_model.yaml (each part's process,
-material and mass), robot.yaml, skeleton.yaml, actuators.yaml and the part meshes in
+Reads description/urdf/marvin_bot_mini_covers.urdf (the robot with its clip-on shells),
+description/cad_model.yaml (each part's process, material and mass), robot.yaml, skeleton.yaml,
+actuators.yaml and the part meshes in
 description/meshes/, which `python -m cad.build` generates. Writes
 site/public/guide/model/marvin_model.js, which sets window.MARVIN_MODEL: the joints, link masses,
 every visual part with its category and assembly module, and the meshes, quantised and packed as
@@ -126,7 +127,7 @@ def module_of(link: str, cat: str) -> str:
         return "head"
     if any(k in link for k in ("hip", "thigh", "shin", "ankle", "foot")):
         return "leg"
-    if any(k in link for k in ("shoulder", "arm")):
+    if any(k in link for k in ("shoulder", "arm", "palm", "jaw")):
         return "arm"
     return "torso"
 
@@ -143,7 +144,7 @@ def build(out: Path) -> None:
     robot = yaml.safe_load((desc / "robot.yaml").read_text())
     skel = yaml.safe_load((desc / "skeleton.yaml").read_text())
     acts = yaml.safe_load((desc / "actuators.yaml").read_text())
-    links, joints = parse_urdf(desc / "urdf" / "marvin_bot_mini.urdf")
+    links, joints = parse_urdf(desc / "urdf" / "marvin_bot_mini_covers.urdf")
     root = (set(links) - {j["child"] for j in joints}).pop()
     motor_of: dict[str, str] = {}
     for m in robot["motors"]:
@@ -164,8 +165,6 @@ def build(out: Path) -> None:
         "battery": "3S Li-ion pack (outline)",
         "electronics": "power board, servo bus adapters and IMU (outline)",
         "camera": "head camera (outline)",
-        "arm_frame": "arm bracket (estimate, not drawn yet)",
-        "head_frame": "head frame (estimate, not drawn yet)",
     }
     box_cat = {
         "compute": "compute",

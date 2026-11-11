@@ -216,6 +216,10 @@ const SKILLS = {
     return {pel:[pel[0], pel[1], PELVIS_Z + pel[2], 0, pel[3] * D2R, 0], feet:{left:[lf[0], 0, lf[2], lc, heel], right:[rf[0], 0, rf[2], rc]},
       q:{...arms(10 * Math.sin(t), 10, 0, 25, 'left'), ...arms(-10 * Math.sin(t), 10, 0, 25, 'right'), neck_pitch:15}};
   }},
+  pour:{label:'Pour', T:7, about:'The right hand held out at chest height, closed on a cup, then the wrist turns 100° to pour and back: the wrist and pincer servos at work.', fn:t => {
+    const up = seg(t, 0, 1.2) * (1 - seg(t, 6, 7)), tilt = seg(t, 2, 3.5) * (1 - seg(t, 4.5, 5.8));
+    return {pel:[0, 0, PELVIS_Z, 0, 0, 0], q:{...restArms(), ...arms(60 * up, 8 + 4 * up, 0, 20 + 50 * up, 'right'), right_wrist_yaw:-100 * tilt, right_gripper:10 * up, neck_pitch:15 * up}};
+  }},
   wave:{label:'Wave', T:6, about:'Right arm raised out to the side, the forearm swinging at the elbow.', fn:t => {
     const up = seg(t, 0, 1) * (1 - seg(t, 5, 6)), w = 30 * Math.sin(2 * Math.PI * 1.4 * t) * up;
     return {pel:[0, 0, PELVIS_Z, 0, 0, 0], q:{...restArms(), ...arms(20 * up, 8 + 95 * up, -20 * up, 20 + 70 * up + w, 'right'), neck_yaw:-20 * up, waist_yaw:-8 * up}};
@@ -326,8 +330,8 @@ const ASM = [
   {t:'Legs', d:'Each leg is built from the hip roll bracket down to the foot: six servos daisy-chained on one bus, zeroed with the foot flat, then bolted to its hip roll servo’s horn.', show:['pelvis', 'leg'], hi:['leg'], anim:{legs:true}},
   {t:'Torso core', d:'The torso frame with the shoulder pitch servos, the neck yaw servo, the power board and e-stop, the Orin Nano and the battery. Powered up without limbs. The battery slides in from the back.', show:['pelvis', 'leg', 'torso', 'battery'], hi:['torso', 'battery'], anim:{torsoLift:true, battery:true}},
   {t:'Join torso to pelvis', d:'The torso frame bolts to the waist servo’s horn; the leg buses and the 12 V lead run down through the waist.', show:['pelvis', 'leg', 'torso', 'battery'], hi:['torso'], anim:{torsoJoin:true}},
-  {t:'Arms and head', d:'Each arm goes onto its shoulder pitch servo with one servo cable; the head goes onto the neck yaw servo with the camera’s ribbon cable.', show:['pelvis', 'leg', 'torso', 'battery', 'arm', 'head'], hi:['arm', 'head'], anim:{arms:true}},
-  {t:'Calibrate', d:'Hung from a stand, every joint’s zero is calibrated, and every joint is run through its range at low torque. The clip-on shells (not drawn yet) go on last.', show:['pelvis', 'leg', 'torso', 'battery', 'arm', 'head', 'cover'], hi:['cover'], anim:{covers:true}},
+  {t:'Arms and head', d:'Each arm, from the shoulder bracket down to the wrist and the pincer, goes onto its shoulder pitch servo with one servo cable; the head goes onto the neck yaw servo with the camera’s ribbon cable.', show:['pelvis', 'leg', 'torso', 'battery', 'arm', 'head'], hi:['arm', 'head'], anim:{arms:true}},
+  {t:'Calibrate', d:'Hung from a stand, every joint’s zero is calibrated, and every joint is run through its range at low torque. The clip-on shells go on last: each hooks into slots in the frame and takes one or two M2 screws into heat-set inserts.', show:['pelvis', 'leg', 'torso', 'battery', 'arm', 'head', 'cover'], hi:['cover'], anim:{covers:true}},
 ];
 let asmT0 = 0;
 function asmOffsets(now) {
@@ -456,8 +460,8 @@ function coupledMin(pitchDeg) {
 
 // ---------- joint sliders
 const GROUPS = [['Legs (left)', LEG('left')], ['Legs (right)', LEG('right')], ['Waist and neck', ['waist_yaw', 'neck_yaw', 'neck_pitch']],
-  ['Left arm', ['left_shoulder_pitch', 'left_shoulder_roll', 'left_shoulder_yaw', 'left_elbow']],
-  ['Right arm', ['right_shoulder_pitch', 'right_shoulder_roll', 'right_shoulder_yaw', 'right_elbow']]];
+  ['Left arm', ['left_shoulder_pitch', 'left_shoulder_roll', 'left_shoulder_yaw', 'left_elbow', 'left_wrist_yaw', 'left_gripper']],
+  ['Right arm', ['right_shoulder_pitch', 'right_shoulder_roll', 'right_shoulder_yaw', 'right_elbow', 'right_wrist_yaw', 'right_gripper']]];
 $('jsliders').innerHTML = GROUPS.map(([g, ns]) => `<div class="jgrp">${g}</div>` + ns.map(n => {
   const j = J[n], short = n.replace(/^(left|right)_/, '').replace(/_/g, ' ');
   return `<div class="jrow" id="jr_${n}"><span title="${n}">${short}</span><input type="range" id="j_${n}" min="${Math.round(j.lower * R2D)}" max="${Math.round(j.upper * R2D)}" step="1" aria-label="${n}"><output id="jo_${n}"></output></div>`;
@@ -494,11 +498,11 @@ function renderLoads() {
   const rows = loadRows();
   if (state.tab === 'skills' || state.tab === 'joints') {
     $('loadwrap').innerHTML = `<table class="loadtab"><tr><th>Joint</th><th>Motor</th><th class="num">Angle</th><th class="num">Torque now</th><th>vs rated (line = rated)</th><th class="num">Peak in loop</th><th class="num">Speed</th></tr>` +
-      rows.slice(0, state.allRows ? 27 : 10).map(o => {
+      rows.slice(0, state.allRows ? rows.length : 10).map(o => {
         const w = Math.min(100, o.f * 50), c = o.f < 0.7 ? 'var(--good)' : o.f < 1 ? 'var(--warn)' : 'var(--bad)';
         const spPct = o.r.speed ? ` (${Math.round(o.sp / o.r.speed * 100)}%)` : '';
         return `<tr><td>${o.n.replace(/_/g, ' ')}</td><td>${o.r.model}</td><td class="num">${(J[o.n].q * R2D).toFixed(0)}°</td><td class="num">${o.t.toFixed(1)} N·m</td><td><div class="bar"><i style="width:${w}%;background:${c}"></i><s></s></div></td><td class="num">${state.tab === 'skills' ? o.pk.toFixed(1) + ' N·m' : '–'}</td><td class="num">${state.tab === 'skills' ? o.sp.toFixed(1) + ' rad/s' + spPct : '–'}</td></tr>`;
-      }).join('') + `</table><button id="allrows">${state.allRows ? 'Show the top 10' : 'Show all 23 joints'}</button> <span style="font-size:12px;color:var(--muted)">Bar: torque as a share of the servo's rated torque; the white line is 100%, the bar's end 200%. Speed in brackets: share of the servo's no-load speed.</span>`;
+      }).join('') + `</table><button id="allrows">${state.allRows ? 'Show the top 10' : `Show all ${rows.length} joints`}</button> <span style="font-size:12px;color:var(--muted)">Bar: torque as a share of the servo's rated torque; the white line is 100%, the bar's end 200%. Speed in brackets: share of the servo's no-load speed.</span>`;
     $('allrows').addEventListener('click', () => { state.allRows = !state.allRows; renderLoads(); });
   }
 }

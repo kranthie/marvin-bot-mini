@@ -68,7 +68,7 @@ ROBOT = {
 }
 
 
-FOREARM = 0.14  # m, robot.yaml forearm: elbow axis to the end of the hand
+FOREARM = 0.08  # m, robot.yaml forearm: elbow axis to the wrist, where the hand is measured
 
 
 def soma_points(npz: dict, names: list[str]) -> dict:
@@ -221,6 +221,21 @@ def tests(name: str, p: dict, dt: float) -> list[tuple[str, bool, str]]:
         height = ((lh[:, 2] + rh[:, 2]) / 2 + (p["pelvis"][:, 2] - floor)) / H
         held = front & (gap > 0.12 * H) & (gap < 0.45 * H) & (height > 0.45) & (height < 0.8)
         check("box held in front", held.mean() > 0.7, f"{100 * held.mean():.0f}% of the time")
+    if name in ("pour", "drink", "turn_knob"):
+        fwd = rh[:, 0] - rs[:, 0]
+        check(
+            "right hand held out in front", fwd.max() > 0.1 * H, f"{100 * fwd.max():.0f} cm ahead"
+        )
+    if name == "drink":
+        to_mouth = np.linalg.norm(p["rhand"] - p["head"], axis=1).min()
+        check(
+            "cup raised to the face",
+            to_mouth < 0.18 * H,
+            f"wrist {100 * to_mouth:.0f} cm from the head",
+        )
+    if name == "screw_bulb":
+        above = rh[:, 2] - (p["head"][:, 2] - p["pelvis"][:, 2])
+        check("right hand above the head", above.max() > 0.0, f"{100 * above.max():+.0f} cm")
     if name == "hand_over":
         fwd = rh[:, 0] - rs[:, 0]
         check("right hand held out", fwd.max() > 0.25 * H, f"{100 * fwd.max():.0f} cm ahead")

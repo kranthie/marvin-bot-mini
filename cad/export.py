@@ -1,8 +1,8 @@
 """Export the code-CAD parts for making them, and their list into the BOM workbook.
 
 Writes:
-  outputs/stl/<part>.stl            each printed part in millimetres, as built by cad/parts.py (the
-                                    right side mirrored), for a slicer
+  outputs/stl/<part>.stl            each printed part in millimetres, as built by cad/frame.py
+                                    and cad/shells.py (the right side mirrored), for a slicer
   bom/bom.xlsx "Made parts (CAD)"   one row per part: quantity, process, material, mass and size,
                                     from description/cad_model.yaml (python -m cad.build); the
                                     Status and Build notes columns are the builder's and are kept
@@ -38,6 +38,7 @@ STL_DIR = ROOT / "outputs" / "stl"
 MATERIALS = {
     "pa_cf": ("PA6-CF", "nylon-carbon, printed dry; the load-carrying leg parts"),
     "petg": ("PETG", ""),
+    "petg_black": ("PETG, black", "the hip girdle and the visor"),
     "tpu": ("TPU 95A", "printed flexible"),
 }
 

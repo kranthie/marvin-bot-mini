@@ -4,14 +4,14 @@
 # (weighed). add_on: true for the optional shells, which count towards the limit only.
 
 items:
-  leg_frame:         {mass: 0.4333, basis: cad, note: "cad/parts.py first pass: pelvis shell, hip roll and pitch brackets, thighs, shins, ankle cross pieces (nylon-carbon), feet (PETG) with TPU soles; no fasteners"}
-  torso_frame:       {mass: 0.0731, basis: cad, note: "cad/parts.py first pass: floor on the waist horn, side frames with the shoulder pitch servos, top plate, back plate (PETG)"}
-  arm_frame:         {mass: 0.06, basis: estimate, note: "printed upper-arm and forearm brackets with the hand stubs, both arms"}
-  head_frame:        {mass: 0.02, basis: estimate, note: "printed neck bracket and head frame with the camera mount"}
-  shells:            {mass: 0.20, basis: estimate, add_on: true, note: "printed clip-on shells: head, chest, thighs, shins, upper arms"}
+  leg_frame:         {mass: 0.5498, basis: cad, note: "cad/frame.py: pelvis, hip roll and pitch brackets, thighs, shins, ankle brackets, feet (nylon-carbon) and TPU soles, with their mounting features"}
+  torso_frame:       {mass: 0.1619, basis: cad, note: "cad/frame.py: the torso frame (PETG): floor on the waist horn, side frames, the shoulder and neck servos' cradles, the computer's and battery's middle plate, back and top plates"}
+  arm_frame:         {mass: 0.2790, basis: cad, note: "cad/frame.py: shoulder brackets and yokes, upper arms, forearms, palms and jaws (PETG), both arms"}
+  head_frame:        {mass: 0.0435, basis: cad, note: "cad/frame.py: the neck yoke and the head frame with the camera mount (PETG)"}
+  shells:            {mass: 0.2664, basis: cad, add_on: true, note: "cad/shells.py: torso front and back, hip girdle, thighs, shins, toe caps, shoulder caps, upper arms, forearms, head and visor"}
   compute:           {mass: 0.25, basis: estimate, note: "Jetson Orin Nano Super developer kit with its heatsink and fan; to weigh"}
   battery:           {mass: 0.22, basis: estimate, note: "3S 3 Ah Li-ion pack with its protection board"}
   electronics:       {mass: 0.12, basis: estimate, note: "three USB servo bus adapters, IMU board, power board (fuse, e-stop relay, buck-boost for the computer), USB hub"}
   harness:           {mass: 0.08, basis: estimate, note: "servo daisy-chain cables, power leads, connectors"}
   camera:            {mass: 0.01, basis: estimate, note: "wide-angle CSI camera module and cable"}
-  hardware:          {mass: 0.12, basis: estimate, note: "far-side bearings and pins, heat-set inserts, screws"}
+  hardware:          {mass: 0.12, basis: estimate, note: "far-side bearings and pins, heat-set inserts, screws (description/cad_model.yaml counts them per part)"}

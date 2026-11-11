@@ -12,7 +12,8 @@ except for what is robot-specific:
   middle of each joint's range;
 - self-collision of the arms against the trunk, legs and other arm (COLLISION_EDITS), which
   upstream leaves off;
-- the joints held near their rest angle (the neck; add_head_motion.py sets it afterwards).
+- the joints held near their rest angle (the neck, the wrists and the pincers; add_head_motion.py
+  and add_hand_motion.py set them afterwards).
 
 It checks that PyRoki's joint order is the MJCF's, since the converter that follows reads the
 retargeted joint vector in MJCF order.
@@ -97,7 +98,11 @@ ARM = (_REACH + 0.005) / 0.56  # 0.44 for the mini's 0.24 m reach
 # half and all of the hip spacing the scaling leaves short (left keypoints are odd)
 _SHORT = max(0.0, (_HIP_SPAN - 0.18 * LEG) / 2)
 WIDEN = {3: _SHORT / 2, 4: _SHORT / 2, 5: _SHORT, 6: _SHORT, 7: _SHORT, 8: _SHORT}
-HOLD = ["neck_yaw", "neck_pitch"]
+# held near rest: the neck (add_head_motion.py sets it afterwards) and the wrists and pincers,
+# which no keypoint fixes (add_hand_motion.py sets them)
+HOLD = ["neck_yaw", "neck_pitch"] + [
+    f"{s}_{j}" for s in ("left", "right") for j in ("wrist_yaw", "gripper")
+]
 
 
 # Self-collision. Upstream builds no collision model and leaves the cost out ("turned off for

@@ -46,4 +46,4 @@ def test_vectorised():
 
 def test_every_joint_has_a_servo():
     js = joint_servos()
-    assert len(js) == 23 and js["left_knee"][0] == "STS3250" and js["waist_yaw"][0] != "STS3250"
+    assert len(js) == 27 and js["left_knee"][0] == "STS3250" and js["waist_yaw"][0] != "STS3250"

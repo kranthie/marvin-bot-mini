@@ -39,7 +39,7 @@ export default defineConfig({
         },
         { label: 'Design', items: ['decisions'] },
         { label: 'Simulation', items: ['simulation/isaac-lab', 'simulation/motion-tracking', 'simulation/skills'] },
-        { label: 'Build', items: ['build/bom', 'build/safety'] },
+        { label: 'Build', items: ['build/bom', 'build/assembly', 'build/safety'] },
         { label: 'Learn', items: ['tutorials'] },
         {
           label: 'Project',

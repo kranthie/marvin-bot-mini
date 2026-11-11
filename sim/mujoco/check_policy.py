@@ -41,7 +41,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from sim.mujoco.model import URDF  # noqa: E402
+from sim.mujoco.model import COVERS_URDF, URDF  # noqa: E402
 from sim.servo_model import joint_servos, servo_torque  # noqa: E402
 
 PHYSICS_DT = 0.002
@@ -100,13 +100,13 @@ def sideways(xy: np.ndarray, side: np.ndarray, half: int) -> float:
     return float(np.ptp(np.percentile(r, [5, 95]))) if len(r) else float("nan")
 
 
-def build(servos: dict, stairs_height: float | None = None) -> mujoco.MjModel:
+def build(servos: dict, stairs_height: float | None = None, covers: bool = False) -> mujoco.MjModel:
     # keep the URDF visuals (the drawn parts) and the floor material; collision boxes go to
     # group 3, hidden in the video
     urdf = re.sub(
         r"(<robot [^>]*>)",
         rf'\1<mujoco><compiler discardvisual="false" meshdir="{URDF.parent}"/></mujoco>',
-        URDF.read_text(),
+        (COVERS_URDF if covers else URDF).read_text(),
         count=1,
     )
     spec = mujoco.MjSpec.from_string(urdf)
@@ -186,6 +186,9 @@ def main() -> None:
     )
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument(
+        "--covers", action="store_true", help="with the clip-on shells (their mass too)"
+    )
+    ap.add_argument(
         "--voltage", type=float, default=_ROBOT["power"]["pack"]["v_nominal"], help="pack, V"
     )
     ap.add_argument("--delay-ms", type=float, default=10.0, help="servo command delay")
@@ -200,7 +203,7 @@ def main() -> None:
     in_name = session.get_inputs()[0].name
 
     servos = joint_servos()
-    model = build(servos, args.stairs)
+    model = build(servos, args.stairs, args.covers)
     data = mujoco.MjData(model)
 
     # policy joint order (from the training backend) -> MuJoCo addresses
@@ -210,6 +213,14 @@ def main() -> None:
     aid = np.array([model.actuator(n).id for n in names])
     default = np.array(meta["default_joint_pos"])
     act_idx = np.array([names.index(n) for n in meta["action_joint_names"]])
+    # joints the policy was not trained with (the wrists and grippers, added after the walking
+    # policies) are held at zero by their servos
+    extra = [model.joint(i).name for i in range(model.njnt) if model.joint(i).name in servos]
+    extra = [n for n in extra if n not in names]
+    x_qadr = np.array([model.jnt_qposadr[model.joint(n).id] for n in extra], dtype=int)
+    x_vadr = np.array([model.jnt_dofadr[model.joint(n).id] for n in extra], dtype=int)
+    x_aid = np.array([model.actuator(n).id for n in extra], dtype=int)
+    x_params = [servos[n][1] for n in extra]
     scale = meta["action_scale"]
     params = [servos[n][1] for n in names]
     rated = np.array([servos[n][2]["rated_torque"] for n in names])
@@ -373,6 +384,13 @@ def main() -> None:
                     servo_torque(p, g, qi, di, args.voltage)
                     for p, g, qi, di in zip(params, goal, q, qd, strict=True)
                 ]
+                if len(extra):
+                    data.ctrl[x_aid] = [
+                        servo_torque(p, 0.0, qi, di, args.voltage)
+                        for p, qi, di in zip(
+                            x_params, data.qpos[x_qadr], data.qvel[x_vadr], strict=True
+                        )
+                    ]
                 peak = np.maximum(peak, np.abs(data.ctrl[aid]) / effort)
                 over = np.maximum(over, np.abs(data.ctrl[aid]) / rule_peak)
                 hot_now = np.abs(data.ctrl[aid]) > rule_peak

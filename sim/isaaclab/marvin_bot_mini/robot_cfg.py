@@ -61,7 +61,14 @@ LEG_JOINTS = [
     ".*_ankle_pitch",
     ".*_ankle_roll",
 ]
-ARM_JOINTS = [".*_shoulder_pitch", ".*_shoulder_roll", ".*_shoulder_yaw", ".*_elbow"]
+ARM_JOINTS = [
+    ".*_shoulder_pitch",
+    ".*_shoulder_roll",
+    ".*_shoulder_yaw",
+    ".*_elbow",
+    ".*_wrist_yaw",
+    ".*_gripper",
+]
 FEET = ".*_foot_link"
 
 # IMU on the pelvis, as the MuJoCo model's site

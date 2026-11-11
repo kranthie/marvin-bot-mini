@@ -14,7 +14,7 @@
 
 ## Glossary
 
-- **DOF:** degree of freedom, one powered joint axis. Marvin Bot Mini has 23.
+- **DOF:** degree of freedom, one powered joint axis. Marvin Bot Mini has 27.
 - **Bus servo:** a servo with its own controller, addressed by id on a shared serial bus; the Feetech STS3250 and STS3215 used here read back position, speed, load, voltage and temperature.
 - **Position control, firmware loop:** the servo takes a goal angle and its own firmware turns the error into a PWM duty cycle; there is no torque mode. The simulations model that loop (`sim/servo_model.py`).
 - **Stall torque, rated torque:** the torque at full duty and no speed, and the torque the servo can hold continuously. Both scale roughly with the supply voltage.

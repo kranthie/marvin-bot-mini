@@ -13,3 +13,4 @@ python tools/bom/book.py --check
 python tools/build_urdf.py --check
 python sim/mujoco/check_torques.py
 python sim/mujoco/check_symmetry.py
+python -m cad.check

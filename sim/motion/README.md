@@ -3,8 +3,9 @@
 Marvin Bot's motion pipeline ([its README](https://github.com/kranthie/marvin-bot/blob/main/sim/motion/README.md)
 explains every step and why), run on the mini. The same 25 human motions generated with Kimodo
 (locomotion, sidesteps, turns, a jog, a march, a kick, squatting and picking up, a bow, a dance
-and arm gestures) are retargeted to the mini's size, and one BeyondMimic-style tracking policy
-learns to follow all of them in ProtoMotions. A new skill is then a new clip, not new reward code.
+and arm gestures), and five of its own for the wrists and pincers (pouring, drinking, a door
+knob, a light bulb, handing over), are retargeted to the mini's size, and one BeyondMimic-style
+tracking policy learns to follow all of them in ProtoMotions. A new skill is then a new clip, not new reward code.
 The clips, with the reference as a ghost, are on the [skills page](../../docs/skills.md).
 
 | Step | Tool | Here |
@@ -13,6 +14,7 @@ The clips, with the reference as a ghost, are on the [skills page](../../docs/sk
 | Keypoints | ProtoMotions' `convert_soma23_npz_to_proto.py`, `extract_retargeting_input_keypoints_from_packaged_motionlib.py` | |
 | Retarget | ProtoMotions' PyRoki retargeter | `retarget_mini.py` |
 | Neck | the human's head orientation | `add_head_motion.py` |
+| Wrists, grip | the human's hand twist; a grip schedule per clip | `add_hand_motion.py` |
 | Convert, package | ProtoMotions' `convert_pyroki_retargeted_robot_motions_to_proto.py`, `motion_lib.py` | `fix_sole_height.py` |
 | Track | [ProtoMotions](https://github.com/NVlabs/ProtoMotions) on Newton, BeyondMimic-style rewards | `setup_protomotions.py`, `check_tracking.py` |
 | Check | the tracker in MuJoCo on the servo model | `replay_mujoco.py` |
@@ -30,10 +32,17 @@ the contact penalty, the root paths, the head and sole fixes). What changes:
   about 5 cm apart against the mini's 9 cm hips, so the feet move out 2 cm each and the knees 1 cm.
   Marvin Bot's figures are 0.69, 0.62, 0.79 and 6.5 cm. The speeds scale with the size, so a
   1.2 m/s human walk becomes about 0.34 m/s.
-- **Hands.** The mini has no wrists or hands, so the retargeter matches the human's wrist to a
-  frame at the end of each forearm, and the tracking model carries a 1 g body there, which the
-  tracker scores and the checks measure as the hand. The arms' joint angles are left out of the
-  joint-angle term, as on Marvin Bot.
+- **Hands.** The retargeter matches the human's wrist to the mini's wrist (the wrist servo's
+  output face), and the tracking model carries a 1 g body there on the palm, which the tracker
+  scores (its position and, as it turns with the wrist, its orientation) and the checks measure
+  as the hand. The shoulder and elbow angles are left out of the joint-angle term, as on Marvin
+  Bot; the wrists and pincers are scored by it.
+- **Wrists and grip.** No keypoint fixes a wrist's turn or a grip, so the retargeter holds them and
+  `add_hand_motion.py` sets them: each wrist from the person's hand twist against the forearm,
+  less its idle average; the pincer from a schedule per clip (Kimodo's hands never open or close):
+  open on the way to an object, closed on it while held, open to let go. Five clips were added for
+  them (`generate_kimodo.py`'s wrist group): pouring, drinking, turning a door knob, screwing in
+  a light bulb overhead and handing something over.
 - **Servos.** ProtoMotions drives joints with its built-in PD. At small errors the servo model
   (`sim/servo_model.py`) is a PD too: stiffness kt × firmware_kp × error_gain × v / R (25 N·m/rad
   for an STS3250, 15 for an STS3215 at 11.1 V), damping kt² / R (0.62 N·m·s/rad), torque capped at
@@ -69,7 +78,7 @@ From the ProtoMotions checkout (`P=../venvs/proto/bin/python; R=../venvs/pyroki/
 `$M` is this repo, `$W` the work folder):
 
 ```bash
-../venvs/kimodo/bin/python $M/sim/motion/generate_kimodo.py $W/npz locomotion skills
+../venvs/kimodo/bin/python $M/sim/motion/generate_kimodo.py $W/npz locomotion skills wrist
 $P $M/sim/motion/setup_protomotions.py .
 $P data/scripts/convert_soma23_npz_to_proto.py --input-dir $W/npz --output-dir $W/soma \
     --input-fps 30 --output-fps 30 --ignore-motion-filter
@@ -85,6 +94,8 @@ for f in $W/keypoints/*.npy; do
       --save-contacts-only --contacts-dir $W/contacts ) &
 done; wait
 $P $M/sim/motion/add_head_motion.py $W/npz $W/retargeted \
+    protomotions/data/assets/urdf/for_retargeting/marvin_bot_mini.urdf
+$P $M/sim/motion/add_hand_motion.py $W/npz $W/retargeted \
     protomotions/data/assets/urdf/for_retargeting/marvin_bot_mini.urdf
 $P data/scripts/convert_pyroki_retargeted_robot_motions_to_proto.py \
     --retargeted-motion-dir $W/retargeted --output-dir $W/proto --robot-type marvin_bot_mini \
@@ -115,30 +126,37 @@ pass); `check_clips.py robot` reruns the skill checks on the mini's references.
 
 ## Results
 
-One tracker plays all 25 clips (the [skills page](../../docs/skills.md) has each one). It was
-trained 2,400 epochs from scratch with the servo-load penalty at a weight of 0.1, then 1,000 more
-warm-started from it at 0.5 (`--checkpoint`, `--training-max-iterations 1000`), 16,384 robots on
-one GPU, about 3 hours in all. Every clip stays upright in Newton and in the MuJoCo check. In
-MuJoCo, on the servo model:
+One tracker plays all 30 clips (the [skills page](../../docs/skills.md) has each one). It was
+trained 3,000 epochs from scratch with the servo-load penalty at a weight of 0.5, then 600 more
+warm-started from it on the strengthened frame's mass (3.59 kg; `--checkpoint`,
+`--training-max-iterations 600`), 16,384 robots on one GPU, about 5 hours in all. A warm start
+counts its epochs from zero, so `--training-max-iterations` is the number still to run; the long
+run was resumed once that way after a GPU timeout on a machine also driving a display. Every clip
+stays upright in Newton; in the MuJoCo check on the servo model, 29 of 30 do:
 
-| | No load penalty | Weight 0.1 | Weight 0.5 |
-|---|---|---|---|
-| Hip rolls standing (idle) | 4.4 N·m, 280% of rated | 1.45 N·m, 92% | 63% RMS |
-| Hardest-working joint, worst clip (RMS / rated) | over 200% | 147% | 79% |
-| Joint error, walk | | 20° | 8.7° |
-| Hands, feet, walk | | 3.9, 4.0 cm | 3.6, 3.7 cm |
+| | 25 clips, weight 0.1 then 0.5 | 30 clips, final mass |
+|---|---|---|
+| Hardest-working joint, worst clip (RMS / rated) | 79% | 86% (arms raise) |
+| Joint error, walk | 8.7° | 16.2° |
+| Hands, feet, walk | 3.6, 3.7 cm | 4.0, 3.5 cm |
+| Hands, wrist clips | | 3.0-8.6 cm |
 
-Penalising the load also tightened the tracking: with the legs no longer pressing against each
-other the joints follow their targets more closely. What is still off:
+The earlier, 25-clip tracker's development showed what the load penalty does: without it the
+tracker held both hip rolls at 4.4 N·m standing still (280% of rated), and with it the legs stopped
+pressing against each other and the joints followed their targets more closely. What is still off:
 
-- **Squat and pick-up** stop with the pelvis at 0.28 m against the reference's 0.15 m (and
-  `replay_mujoco.py` flags them, since it counts 0.10 m below the reference as a fall); the knees
-  reach stall on the way down. The torque check takes the robot down to a deep squat (knee 120°) within the
-  torque rule, so the tracker may be
-  short of what the servos allow; a longer run or a squat-weighted curriculum is next to try.
-- **Sidesteps and walking back** cover 72-76% of the reference's distance.
-- **Arm gestures** (arms raise, the two-hand wave, clap) put the hands 15 cm off: the arms' poses
-  are scaled to a 0.24 m reach and the shoulder servos peak at stall.
+- **The two-hand wave falls in MuJoCo** in its first second: the policy lets its feet drift
+  together and the soles catch, with noise and command delay off too. It holds in Newton, and the
+  25-clip tracker held it in MuJoCo, so this is a gap between the simulators that the five new
+  clips opened; domain randomisation of the feet's friction and the servo gains is the next thing
+  to try.
+- **Squat and pick-up** stop with the pelvis at 0.27 m against the reference's 0.15 m (and
+  `replay_mujoco.py` flags them, since it counts 0.10 m below the reference as a fall). The torque
+  check takes the robot down to a deep squat (knee 120°) within the torque rule, so the tracker
+  may be short of what the servos allow; a squat-weighted curriculum is next to try.
+- **Sidesteps and walking back** cover 43-55% of the reference's distance.
+- **Arm gestures** (arms raise, clap) put the hands 12-13 cm off, and the overhead bulb 9 cm: the
+  arms' poses are scaled to a 0.24 m reach.
 
 ## Data licences
 

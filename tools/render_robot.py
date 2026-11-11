@@ -1,6 +1,6 @@
 """Render the robot in MuJoCo: a still of the stance and animations of the torque check's cases.
 
-Writes docs/media/robot.png (the stance, from the front three-quarters and the side) and an
+Writes docs/media/robot.png (the stance from four sides, the bare frame and with the shells) and an
 animated WebP per moving case of sim/mujoco/check_torques.py (docs/media/<case>.webp), played by the
 simulated servos at the pack's empty voltage, as the check runs them.
 
@@ -46,13 +46,18 @@ def frame(r: Robot, renderer: mujoco.Renderer, cam: mujoco.MjvCamera, follow=Tru
 
 
 def still() -> Path:
-    r = Robot(visual=True)
-    r.set_pose(check_torques.STANCE)
-    r.place_on_floor()
-    with mujoco.Renderer(r.model, H, W) as rd:
-        imgs = [frame(r, rd, camera(az)) for az in (150, 90)]
+    """The stance from four sides, the bare frame above and with the clip-on shells below."""
+    rows = []
+    for covers in (False, True):
+        r = Robot(visual=True, covers=covers)
+        r.set_pose(check_torques.STANCE)
+        r.place_on_floor()
+        with mujoco.Renderer(r.model, H, W) as rd:
+            rows.append(
+                np.concatenate([frame(r, rd, camera(az)) for az in (150, 90, 180, 30)], axis=1)
+            )
     out = MEDIA / "robot.png"
-    Image.fromarray(np.concatenate(imgs, axis=1)).save(out)
+    Image.fromarray(np.concatenate(rows, axis=0)).save(out)
     return out
 
 

@@ -44,6 +44,7 @@ function finishOf(p) {
   if (n === 'head_visor' || n === 'head_camera_frame') return 'gloss';
   if (n.startsWith('head_shell') || n === 'neck_cover') return 'cover';
   if (n === 'pelvis_cover' || n.includes('glute')) return 'dark';
+  if (p.material === 'petg_black') return 'dark';
   if (p.process === 'cover') return 'cover';
   if (p.process === 'cnc' || p.process === 'service') return 'alu';
   if (p.material === 'tpu') return 'tpu';

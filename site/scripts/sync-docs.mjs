@@ -32,6 +32,7 @@ const PAGES = {
   'docs/skills.md': { slug: 'simulation/skills' },
   'bom/README.md': { slug: 'build/bom', title: 'Bill of materials' },
   'docs/safety.md': { slug: 'build/safety' },
+  'docs/assembly.md': { slug: 'build/assembly' },
   'CONTRIBUTING.md': { slug: 'project/contributing' },
   'ACKNOWLEDGMENTS.md': { slug: 'project/acknowledgments' },
   'SECURITY.md': { slug: 'project/security' },

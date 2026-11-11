@@ -2,6 +2,135 @@
 
 Settled decisions, newest first, with the reason and the alternatives considered.
 
+## 2026-11-11: five skills for the wrists and pincers, the tracker retrained
+
+With a wrist yaw and a pincer on each arm, five clips were added for them (pouring, drinking,
+turning a door knob, screwing in a light bulb overhead, handing something over), and the tracker
+was retrained on all 30. No keypoint fixes a wrist's turn or a grip, so `add_hand_motion.py` sets
+them after retargeting: the wrist from the person's hand twist against the forearm, less its idle
+average; the right pincer from a schedule per clip worked out from the hand's path (open on the
+way to the object, closed on it while held, open to let go), since Kimodo's hands never open or
+close. The left pincer stays closed. The tracker scores a 1 g hand body on each palm, so its
+wrist turn is tracked as the hand's orientation.
+
+It trained 3,000 epochs from scratch with the servo-load penalty at 0.5, resumed once after the
+GPU's display watchdog stopped it at epoch 1,560, then 600 more on the strengthened frame's mass:
+the first replay, of a tracker trained on the 3.51 kg model, ran on the 3.59 kg one. In MuJoCo
+the wrist clips put the hand 3-9 cm from the reference and every clip but one stays upright: the
+two-hand wave falls in its first second as the feet drift together and catch, in MuJoCo only and
+whatever the noise or command delay. It is left as an open item (roadmap) rather than held up for:
+the 25-clip tracker kept it, and the likely cure, randomising the feet's friction and the servo
+gains in training, is a longer run. Alternatives: dropping the two-hand wave from the set (it
+hides the gap rather than closing it), and grips from a hand-pose model (Kimodo has none for these
+hands; a schedule does for a one-servo pincer).
+
+## 2026-11-11: the frame stress-checked and strengthened, walking retrained
+
+**Stress check.** Marvin Bot's finite-element check (`cad/fea.py`: quadratic tetrahedra, each part
+held where it is driven and loaded where the next link hangs on it) now runs on every printed
+part, with each part's contact patches recorded by the CAD: a landing on one foot at three body
+weights, a sideways fall onto the knee, a hand catching half the body weight, the head dropped at
+10 g and each servo's stall torque, against the printed material's strength between layers
+(25 MPa) for a safety factor of 2.2. The first pass found the frame far too weak in places: the
+pelvis at 0.9 (landing), the hip pitch brackets at 0.9, the torso's floor at 0.4 and the neck yoke
+at 0.5 (both bent round a servo horn by a stall torque), the shoulder yoke at 1.4, the foot at 1.6.
+What changed:
+
+- **Horn plates with skirts.** A 3-4 mm plate on a horn bends round the horn's 20 mm face when a
+  moment crosses it. Where it did, the plate gets a skirt under it, down to just above the
+  servo's top face and open round the horn (the hip pitch brackets' floors, the torso's waist
+  hub, the neck yoke), and is thicker where the next servo's sweep leaves room (`swept()` trims
+  it). Plates over 3.2 mm are counterbored so the M2 x 6 horn screws still reach the horn.
+- **The pelvis** carries the hips' loads to the waist servo's case through a channel (two walls
+  and a floor) between the cradles, gussets down the hip roll cradles' inner walls, and thicker
+  waist cradle sides; the hip roll bracket's swing trims them.
+- **The torso** has a front rib across its floor, gusseted up the side frames, and an 8 mm hub on
+  the waist horn. The shoulder yokes' bottoms are 5 mm, the hip pitch idlers 5 mm and wider, the
+  shins' back webs 7 mm, and the feet gain gussets up the back of the ankle's idler lug.
+- **The neck servos run at a 30% torque limit** (robot.yaml `torque_limit`, set in the servo at
+  setup). The neck holds a 0.2 kg head with under 10% of stall; at full stall torque its yoke
+  would need to be much heavier.
+
+Results (`python -m cad.fea`; the left side, the right is its mirror):
+
+| Part | Worst case | Safety factor |
+|---|---|---|
+| torso frame | shoulder pitch stall torque | 2.2 |
+| pelvis | landing | 2.3 |
+| hip roll bracket | landing | 4.7 |
+| hip pitch bracket | hip yaw stall torque | **2.0** |
+| thigh | landing | 4.2 |
+| shin | ankle pitch stall torque | 2.3 |
+| ankle bracket | ankle roll stall torque | 3.1 |
+| foot | landing | 2.3 |
+| shoulder bracket | shoulder roll stall torque | 5.0 |
+| shoulder yoke | hand catch | 2.4 |
+| upper arm | hand catch | 8.7 |
+| forearm | wrist yaw stall torque | 2.5 |
+| palm | gripper stall torque | 11.2 |
+| neck yoke | neck pitch at its 30% limit | 4.0 |
+
+The hip pitch bracket stays at 2.0: its peak is at the idler's bearing seat, where the model ties
+the bearing rigidly to its bore, and a thicker idler meets the hip girdle. It is the part to test
+first in print. Alternatives considered: nylon-carbon for the PETG parts (the same 25 MPa between
+layers, so no gain in this check), and thicker plates throughout (over the mass limit).
+
+**Mass.** The frame gained 77 g, the shells lost 37 g (1.4 mm walls, from 1.6: they carry no
+load): 3.59 kg bare, 3.86 kg with the shells. The target is now 3.6 kg bare; the 3.9 kg limit
+stays. The torque checks pass with the shells (`check_torques.py --covers`): the elbow in the
+push-up peaks at 66% of the rule and runs at 92% of its rated torque RMS.
+
+**Walking retrained (flat v4).** The 27-joint robot's policy had to be trained from scratch (its
+observations hold every joint). With the torque penalties on from the start it learned to throw
+itself over within 0.2 s, as flat v1 did; trained 3,000 iterations without them, 2,000 with them
+and 1,500 more with a broader foot clearance reward (the sharp one paid nothing to a policy
+shuffling with 0.5 cm of lift), it walks, turns and stops in the MuJoCo cross-check with and
+without the shells ([sim/isaaclab/README.md](../sim/isaaclab/README.md)).
+
+## 2026-11-10: the frame and shells redrawn, assembly ready, with wrists and pincers
+
+The first CAD pass drew the legs, pelvis and torso as plain plates and boxes round servo cases
+centred on their joints, and several cases overlapped (the shoulder roll and yaw servos, the ankle
+pitch and roll servos). The robot is now drawn from scratch in `cad/` on manifold3d:
+
+- **Servos where they really sit.** Each case is placed by its top face on the shaft's axis, its
+  output and length directions (robot.yaml `output`, `length`, Marvin Bot's form) and the shaft's
+  11.5 mm offset from the case's centre (actuators.yaml `shape`, Marvin Bot's STS3250 figures).
+  Joint axes are unchanged except two: the ankle roll axis is 22 mm below the pitch axis (with
+  them crossing, either servo sweeps into the other within the ankle's range; the roll servo now
+  lies in front of the pitch servo), and nothing else moves.
+- **One set of joint details.** A cradle round the case (M2 screws into its ends, a notch for its
+  bus sockets), a horn plate (four M2 into the horn) and, at the hips, knees, ankle pitch,
+  shoulder roll, elbows and neck pitch, an idler plate on a 683 bearing turning on an M3 pin in a
+  heat-set insert: carried on both sides, as Marvin Bot's far-side bearings.
+- **Wrists and pincers (option 1 of three studied):** a wrist yaw and a one-servo pincer per arm,
+  one jaw fixed, one on the gripper servo's horn (the open-source SO-ARM100's arrangement).
+  Chosen over parallel jaws (more parts for the same grip on a cup in the animations) and a
+  pitch-and-roll wrist (a third servo per arm, all 15 STS3215s used, awkward high-elbow poses at
+  this arm length). 13 of the 15 STS3215s are used, two spare.
+- **Shells in Marvin Bot's language** (the slim diamond-faceted design chosen from rendered
+  options): the torso faceted by Marvin Bot's rules, its side walls inside the shoulder servos,
+  which show; octagonal upper-arm sleeves with cooling slots, a faceted forearm, box-section thigh
+  and shin shells, a dark hip girdle, toe caps, a rounded-box head with a dark visor. Each is
+  sized from what it covers and fastened by a snap hook into a frame slot and M2 screws into
+  heat-set inserts on bosses grown from the frame to it.
+- **Wiring:** the cradles' socket notches face the next servo in each chain; leads cross joints
+  in service loops in the shells' gaps, tied through paired slots; `python -m cad.harness` sizes
+  them (27 leads, 100-300 mm).
+- **Checked:** `python -m cad.check` moves every joint through its range (69 poses) and fails if
+  any part, servo or shell meets another, or a shell cuts into the frame it covers. To pass it,
+  ankle roll is +-15° (from 25°), shoulder yaw -45..90° (from +-90°), neck pitch -20..30° (from
+  -30..45°), and shoulder roll goes below -2° only with the arm forward (a coupled limit).
+
+The robot is 3.30 kg bare and 3.60 kg with the shells (from 2.92 and 3.12): the arms gained two
+servos each and their printed parts are now drawn. The torque checks pass at 3.60 kg (peaks at
+most 63% of the rule, the elbow in the push-up at 89% of its rated torque RMS), so the target is
+now 3.3 kg bare and the limit 3.7 kg with the shells. The flat walking policy, trained on the
+old model, still walks the new one in MuJoCo without falling but too fast (0.27 m/s for 0.20):
+the walking and tracking policies are to be retrained on it. The servo's horn screw circle and
+case mounting holes are datasheet figures, to measure on a servo before printing
+([assembly](assembly.md)).
+
 ## 2026-11-10: a servo-load penalty in the motion tracker
 
 The first tracker, trained with Marvin Bot's BeyondMimic-style rewards, held both hip rolls 10° past where they stood, pressing the legs together through the floor: 4.4 N·m each standing still in the MuJoCo check, 2.8 times the STS3250's rated torque, which would overheat them in minutes. Nothing in those rewards sees torque, and a stiff stance costs nothing in simulation; Marvin Bot's larger motors had the margin to hide it. The tracker now pays for each joint's torque beyond half its servo's rated torque, squared (`compute_servo_load_rew`, worked out from the PD target since the simulator's built-in PD does not report its torque). At a weight of 0.1 the hip rolls still held 92% of rated standing; warm-starting 1,000 more epochs at 0.5 brought the hardest-working joint to 46-79% of rated RMS across the 25 clips, and the walking joint error from 20° to 9°. Every clip stays upright in Newton and in MuJoCo; the squat and pick-up stop 12 cm above the reference's depth. Alternatives: lowering the servo gains (the stiffness is the servo firmware's, so the sim would no longer match the servo), or a torque term only in the MuJoCo check (it would catch the problem, not fix it).

@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/kranthie/marvin-bot-mini/actions/workflows/ci.yml/badge.svg)](https://github.com/kranthie/marvin-bot-mini/actions/workflows/ci.yml) ![Software: Apache-2.0](https://img.shields.io/badge/software-Apache--2.0-blue) ![Hardware: CERN-OHL-S-2.0](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-blue) ![Stage: simulation](https://img.shields.io/badge/stage-simulation%20only-orange)
 
-A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m tall and 2.9 kg, with 23 powered joints on Feetech serial-bus servos, a fully printed frame, and an NVIDIA Jetson Orin Nano Super 8 GB onboard, for about $1.6k in parts. It is the miniature of [Marvin Bot](https://github.com/kranthie/marvin-bot), the 1.41 m open humanoid, and keeps its architecture: one description drives everything else, the frame is drawn in code, every change is checked in MuJoCo, walking and skills are trained in Isaac Lab and ProtoMotions, and the servos' own firmware loop is modelled in every simulation so the policies are trained on the servo the robot will have.
+A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m tall and 3.6 kg, with 27 powered joints on Feetech serial-bus servos (wrists and pincer grippers included), a fully printed frame with clip-on shells in Marvin Bot's faceted style, and an NVIDIA Jetson Orin Nano Super 8 GB onboard, for about $1.6k in parts. It is the miniature of [Marvin Bot](https://github.com/kranthie/marvin-bot), the 1.41 m open humanoid, and keeps its architecture: one description drives everything else, the frame is drawn in code, every change is checked in MuJoCo, walking and skills are trained in Isaac Lab and ProtoMotions, and the servos' own firmware loop is modelled in every simulation so the policies are trained on the servo the robot will have.
 
-**Status:** phase 1, robot in simulation. Nothing has been built yet; the parts are priced and not yet ordered. The legs, pelvis and torso are drawn in code-CAD (first pass) and the URDF is generated from them. In MuJoCo the simulated servos hold the robot through standing, squatting and the poses of getting up, within their torque limits on an empty battery. A walking policy trained in Isaac Lab walks, turns and stops in a MuJoCo cross-check on the servo model, and one motion-tracking policy plays 25 skills from human motion, upright in every clip in MuJoCo on the servo model (see the [skills page](docs/skills.md)). See [docs/roadmap.md](docs/roadmap.md).
+**Status:** phase 1, robot in simulation. Nothing has been built yet; the parts are priced and not yet ordered. The whole frame and its clip-on shells are drawn in code-CAD, ready to assemble: screw holes, bearing seats, heat-set insert bosses, snap hooks, cable passages and service-loop gaps, checked clear through every joint's range and stress-checked for landings, falls and the servos' stall torques ([assembly](docs/assembly.md)); the URDF is generated from them. In MuJoCo the simulated servos hold the robot through standing, squatting and the poses of getting up, within their torque limits on an empty battery. A walking policy trained in Isaac Lab on the current model walks, turns and stops in a MuJoCo cross-check on the servo model, with its shells on or off, and one motion-tracking policy plays 30 skills from human motion, five of them for the wrists and pincers (pouring, drinking, a door knob, a light bulb, handing over), upright in 29 of the 30 in MuJoCo on the servo model (see the [skills page](docs/skills.md)). See [docs/roadmap.md](docs/roadmap.md).
 
 **Website:** <https://kranthie.github.io/marvin-bot-mini/>, with the robot in 3-D, a 3-D model page (layers, assembly order, skills with live servo loads) and these docs.
 
@@ -18,7 +18,7 @@ A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m ta
 > everything is provided as is, without warranty, under the licences below. Report safety issues
 > privately ([SECURITY.md](SECURITY.md)).
 
-![Marvin Bot Mini in MuJoCo: first-pass printed parts on the legs, pelvis and torso, servos in gold (STS3250) and blue (STS3215); the arms and head still estimate boxes](docs/media/robot.png)
+![Marvin Bot Mini in MuJoCo: the printed frame with its black servos (top), and with its clip-on shells (bottom)](docs/media/robot.png)
 
 <sub>MuJoCo render of the generated model (`tools/render_robot.py`).</sub>
 
@@ -28,11 +28,11 @@ A small, low-cost open humanoid for trying locomotion and skills: about 0.6 m ta
 |---|---|---|
 | ![Walking: the tracker (solid) and its reference motion (blue)](docs/media/skills/walk.webp) | ![Bowing](docs/media/skills/bow.webp) | ![Kicking](docs/media/skills/kick.webp) |
 
-One motion-tracking policy plays the skills: the solid robot is the trained policy, the translucent blue robot the reference motion it follows (human motion generated with Kimodo and retargeted to the mini). It is trained on Newton in ProtoMotions and replayed in MuJoCo on the full servo model, where every clip stays upright; the squat and pick-up stop about 12 cm higher than the reference, and the arm gestures are the least accurate. All of them, with their tracking errors, are on the [skills page](docs/skills.md), and the pipeline is in [sim/motion/README.md](sim/motion/README.md).
+One motion-tracking policy plays the skills: the solid robot is the trained policy, the translucent blue robot the reference motion it follows (human motion generated with Kimodo and retargeted to the mini). It is trained on Newton in ProtoMotions and replayed in MuJoCo on the full servo model, where every clip but the two-hand wave stays upright; the wrists turn with the person's hand and the pincer opens and closes on the object, the squat and pick-up stop about 12 cm higher than the reference, and the arm gestures are the least accurate. All of them, with their tracking errors, are on the [skills page](docs/skills.md), and the pipeline is in [sim/motion/README.md](sim/motion/README.md).
 
-![Flat walking v3 in the MuJoCo cross-check: stand, walk 0.2 m/s, turn, walk while turning, stop](docs/media/flat_walk.webp)
+![Flat walking v4 in the MuJoCo cross-check, with the shells on: stand, walk 0.2 m/s, turn, walk while turning, stop](docs/media/flat_walk.webp)
 
-A separate walking policy (flat v3) is trained in Isaac Lab and replayed in MuJoCo with the servo model, sensor noise and a command delay: it walks at 0.2-0.3 m/s, turns and stops on an empty or a nominal pack, with the knees at 60-81% of their rated torque. Its training and results are in [sim/isaaclab/README.md](sim/isaaclab/README.md).
+A separate walking policy (flat v4) is trained in Isaac Lab and replayed in MuJoCo with the servo model, sensor noise and a command delay: it walks at 0.2-0.3 m/s, turns and stops on an empty or a nominal pack, with the knees at 64-72% of their rated torque. Its training and results are in [sim/isaaclab/README.md](sim/isaaclab/README.md).
 
 | Squat | Rising from a crouch | Sitting up on the hands |
 |---|---|---|
@@ -67,14 +67,14 @@ Every source, with its licence and what was used from it, is in [ACKNOWLEDGMENTS
 
 | | |
 |---|---|
-| Height, mass | ~0.60 m; 2.92 kg bare, 3.12 kg with the add-on shells (`tools/check_description.py`; legs and torso from the CAD, the rest estimates); 3.0 kg target, 3.5 kg limit |
-| Joints | 6 per leg (hip roll, pitch and yaw, knee, ankle pitch and roll), 4 per arm (shoulder pitch, roll and yaw, elbow), waist yaw, 2 neck; Marvin Bot's joint names |
-| Servos | Feetech STS3250 (4.9 N·m stall) on the legs and shoulder pitch, STS3215 12 V (2.9 N·m stall) on the rest of the arms, the waist and neck; magnetic 12-bit encoders, position control |
+| Height, mass | ~0.58 m; 3.59 kg bare, 3.86 kg with the clip-on shells (`tools/check_description.py`; the printed parts from the CAD, the bought parts estimates); 3.6 kg target, 3.9 kg limit |
+| Joints | 6 per leg (hip roll, pitch and yaw, knee, ankle pitch and roll), 6 per arm (shoulder pitch, roll and yaw, elbow, wrist yaw, a one-servo pincer), waist yaw, 2 neck; Marvin Bot's joint names |
+| Servos | Feetech STS3250 (4.9 N·m stall) on the legs and shoulder pitch, STS3215 12 V (2.9 N·m stall) on the rest of the arms, the wrists, grippers, waist and neck; magnetic 12-bit encoders, position control |
 | Buses | three Feetech serial buses at 1 Mbit/s (each leg, the upper body), 50 Hz control |
 | Compute | Jetson Orin Nano Super 8 GB onboard: control loop, policies, light vision; desktop GPU for training |
 | Sensing | pelvis IMU, wide-angle head camera, the servos' position, load, voltage and temperature |
 | Power | 3S Li-ion, 3.5 Ah (39 Wh), straight to the 12 V servos through a fuse and the e-stop; a buck-boost supply for the computer |
-| Frame | printed (PETG, nylon-carbon at the hips and knees), steel pins and bearings on the far side of loaded joints |
+| Frame | printed (nylon-carbon legs and pelvis, PETG arms, torso and head): every joint a cradle round its servo and a horn plate, the loaded ones also carried on a 683 bearing on the far side; clip-on PETG shells, hooked and screwed |
 | Software | Isaac Lab for training with the servo model, MuJoCo as a cross-check, ProtoMotions for motion tracking |
 
 The joint list, ranges and servos are defined in [description/robot.yaml](description/robot.yaml), the single source of truth for everything else.
@@ -86,7 +86,8 @@ docs/          plan, requirements, roadmap, safety, decisions, skills, media (re
 description/   robot.yaml (joints, sizes, servos, buses, power, torque rule), actuators.yaml
                (servos and their simulation model), mass_budget.yaml, skeleton.yaml (frames, mass
                placement), cad_model.yaml and urdf/ (generated)
-cad/           code-CAD of the printed parts (build123d), their mass build and export
+cad/           code-CAD (manifold3d): the frame, the clip-on shells, the clearance check, the
+               stress check, the harness, the mass build and the export
 bom/           bill of materials workbook (bom.xlsx): bought parts by group, sourcing, totals, and
                the CAD's list of made parts
 sim/           the servo model; mujoco/: the robot in MuJoCo, the torque, symmetry and policy
@@ -133,9 +134,9 @@ Nothing here is ready to build from yet. What exists, and what a builder would s
 
 | Area | Status |
 |---|---|
-| Frame | code-CAD first pass of the legs, pelvis and torso; STL per part; arms and head still estimates; no fasteners, horn bolt patterns or bearing seats; no stress check |
-| Printed parts | STL; no print settings |
-| Electronics | power topology and bus layout in `description/robot.yaml`; no wiring harness or schematics |
+| Frame | every part drawn in code-CAD with its fasteners, bearing seats, inserts, snap hooks and cable slots; STL per part; clear through every joint's range (`python -m cad.check`) and stress-checked (`python -m cad.fea`); the servo's horn screw circle, case holes and shaft offset are datasheet figures, to measure first |
+| Printed parts | STL; materials and print orientation in [assembly](docs/assembly.md); no slicer profiles |
+| Electronics | power topology and bus layout in `description/robot.yaml`; servo bus chains and lead lengths (`python -m cad.harness`); no schematics or power board layout |
 | Battery | parts chosen (a 3S pack with a protection board); not built |
 | Servo model | from datasheets and BAM's STS3215 figures; to be fitted on the bench (phase 2) |
 | Software on the robot | not written yet (phase 2) |

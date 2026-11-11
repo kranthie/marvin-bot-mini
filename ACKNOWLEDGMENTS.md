@@ -4,10 +4,11 @@ Marvin Bot Mini is designed from scratch, but it learns from open projects, publ
 
 ## Marvin Bot
 
-- **Marvin Bot**: https://github.com/kranthie/marvin-bot (software Apache-2.0, hardware CERN-OHL-S-2.0), by the same contributors. The architecture, conventions, the description file format, the description check and the BOM summary are carried over from it, under the same licences.
+- **Marvin Bot**: https://github.com/kranthie/marvin-bot (software Apache-2.0, hardware CERN-OHL-S-2.0), by the same contributors. The architecture, conventions, the description file format, the description check and the BOM summary are carried over from it, under the same licences; so are the code-CAD toolkit (`cad/lib.py`), the finite-element stress check (`cad/fea.py`), the shells' design language and the way they are drawn (the faceted torso, kept inside the shoulders, bevelled at the front; `cad/shells.py`), the clearance check over the joints' ranges (`cad/check.py`), and the STS3250 case figures.
 
 ## Small open humanoids and servo models (ideas and methods)
 
+- **SO-ARM100** (The Robot Studio): https://github.com/TheRobotStudio/SO-ARM100 (Apache-2.0). An open arm on STS3215 servos; its gripper, one jaw fixed and one on the servo's horn, is the arrangement of the mini's pincer (`cad/frame.py`: palm, jaw). Ideas only, no geometry.
 - **ToddlerBot** (Stanford University): https://github.com/hshi74/toddlerbot (MIT). A low-cost open servo humanoid; reference for zero-point calibration, system identification of servos and sim-to-real on a small robot. Ideas only.
 - **Open Duck Mini**: https://github.com/apirrone/Open_Duck_Mini (Apache-2.0). An open small biped on STS3215 servos walking with a policy trained in simulation; reference for the servo model fitting workflow. Ideas only.
 - **Zeroth bot**: https://github.com/zeroth-robotics/zeroth-bot (MIT). A small open humanoid on STS3215 servos; reference for scale and servo choice. Ideas only.
@@ -28,7 +29,8 @@ Marvin Bot Mini is designed from scratch, but it learns from open projects, publ
 
 ## Tools
 
-- **build123d** (https://github.com/gumyr/build123d, Apache-2.0) on **OCP** (https://github.com/CadQuery/OCP, Apache-2.0) and **Open CASCADE Technology** (https://dev.opencascade.org, LGPL-2.1 with the OCCT exception): the code-CAD in `cad/`. **trimesh** (https://github.com/mikedh/trimesh, MIT): meshes and mass properties.
+- **manifold3d** (https://github.com/elalish/manifold, Apache-2.0): the code-CAD in `cad/`. **trimesh** (https://github.com/mikedh/trimesh, MIT): meshes and mass properties.
+- **fTetWild** (https://github.com/wildmeshing/fTetWild, MPL-2.0, through **pytetwild**, MPL-2.0, and **PyVista**, MIT), **scikit-fem** (https://github.com/kinnala/scikit-fem, BSD-3-Clause), **PyPardiso** (https://github.com/haasad/PyPardisoProject, BSD-3-Clause; Intel oneMKL PARDISO), **Rtree** (MIT) and **SciPy** (BSD-3-Clause): the finite-element stress check in `cad/fea.py` (meshing, assembly, the sparse solver), Marvin Bot's adapted.
 - **openpyxl** (MIT): the BOM workbook. **NumPy**, **PyYAML**, **Pillow**, **ONNX Runtime**: used as libraries.
 - **Astro** and **Starlight** (https://github.com/withastro/astro, https://github.com/withastro/starlight, MIT): the documentation website in `site/`. **three.js** (https://github.com/mrdoob/three.js, MIT): the 3-D model on the website. The site, its 3-D viewers and the 3-D model page are Marvin Bot's, adapted.
 

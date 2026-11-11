@@ -32,14 +32,25 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DESC = ROOT / "description"
 URDF_OUT = DESC / "urdf" / "marvin_bot_mini.urdf"
+COVERS_OUT = (
+    DESC / "urdf" / "marvin_bot_mini_covers.urdf"
+)  # with the add-on shells: renders, the site
 CAD_MODEL = DESC / "cad_model.yaml"  # written by cad/build.py
 SIDES = ("left", "right")
-MOTOR_COLOURS = {"STS3250": "0.88 0.66 0.0 1", "STS3215-C018": "0.23 0.49 0.85 1"}
+MOTOR_COLOURS = {
+    "STS3250": "0.13 0.13 0.14 1",
+    "STS3215-C018": "0.10 0.10 0.11 1",
+}  # both black, as the servos are
 BODY_COLOUR = "0.19 0.20 0.23 1"
 # budget items spread through their links (a box per link for the mass and inertia), not drawn
 NOT_DRAWN = {"harness", "hardware"}
 # printed parts by material: white PETG, grey nylon-carbon, black TPU
-CAD_COLOURS = {"petg": "0.90 0.91 0.92 1", "pa_cf": "0.42 0.44 0.47 1", "tpu": "0.08 0.08 0.09 1"}
+CAD_COLOURS = {
+    "petg": "0.90 0.91 0.92 1",
+    "petg_black": "0.13 0.14 0.15 1",
+    "pa_cf": "0.30 0.31 0.33 1",
+    "tpu": "0.08 0.08 0.09 1",
+}
 
 
 # ---------------------------------------------------------------------------------- helpers
@@ -158,8 +169,10 @@ def servo_box(axis: list[float], envelope_mm: list[float]) -> list[float]:
 
 def motor_placements() -> list[dict]:
     """Every servo case: name, model, the link carrying it, centre in that link's frame, size,
-    and the joint it drives. A case sits on the parent link of its joint, centred on the joint,
-    unless skeleton.yaml's motor_mounts moves it."""
+    the joint it drives, and its shaft: the top face's point on the shaft axis (mount), the
+    output and length directions (robot.yaml). A case sits where skeleton.yaml's motor_mounts
+    puts its top face, runs actuators.yaml's shape axially from there and is offset along its
+    length from the shaft; with no mount, it is centred on its joint."""
     robot = yaml.safe_load((DESC / "robot.yaml").read_text())
     acts = yaml.safe_load((DESC / "actuators.yaml").read_text())
     skel = yaml.safe_load((DESC / "skeleton.yaml").read_text())
@@ -169,21 +182,52 @@ def motor_placements() -> list[dict]:
     for m in expand(robot["motors"]):
         (jn,) = m["drives"]
         j = joints[jn]
-        mount = mounts.get(m["name"], {"link": j["parent"], "xyz": j["xyz"]})
+        mount = mounts.get(m["name"])
+        sh = acts[m["model"]].get("shape")
+        right = m["name"].startswith("right_")
+        if mount is None or sh is None or "output" not in m:
+            out.append(
+                dict(
+                    name=m["name"],
+                    model=m["model"],
+                    link=(mount or {}).get("link", j["parent"]),
+                    xyz=(mount or {}).get("xyz", j["xyz"]),
+                    size=servo_box(j["axis"], acts[m["model"]]["envelope_mm"]),
+                    joint=jn,
+                )
+            )
+            continue
+        o = mirror_xyz(m["output"]) if right else list(m["output"])
+        ln = mirror_xyz(m["length"]) if right else list(m["length"])
+        lo, hi = (v / 1000 for v in sh["axial"])
+        along = (lo + hi) / 2
+        off = sh["shaft_offset"] / 1000
+        top = [float(v) for v in mount["xyz"]]
+        centre = [top[i] + o[i] * along + ln[i] * off for i in range(3)]
+        width = [1.0 - abs(o[i]) - abs(ln[i]) for i in range(3)]
+        size = [
+            abs(o[i]) * (hi - lo)
+            + abs(ln[i]) * sh["box"][0] / 1000
+            + width[i] * sh["box"][1] / 1000
+            for i in range(3)
+        ]
         out.append(
             dict(
                 name=m["name"],
                 model=m["model"],
                 link=mount["link"],
-                xyz=mount["xyz"],
-                size=servo_box(j["axis"], acts[m["model"]]["envelope_mm"]),
+                xyz=centre,
+                size=size,
                 joint=jn,
+                top=top,
+                output=o,
+                length=ln,
             )
         )
     return out
 
 
-def build() -> tuple[str, dict]:
+def build(covers: bool = False) -> tuple[str, dict]:
     robot = yaml.safe_load((DESC / "robot.yaml").read_text())
     acts = yaml.safe_load((DESC / "actuators.yaml").read_text())
     budget = yaml.safe_load((DESC / "mass_budget.yaml").read_text())["items"]
@@ -192,8 +236,9 @@ def build() -> tuple[str, dict]:
     ranges = {j["name"]: j["range"] for j in expand(robot["joints"])}
     joints = mirrored(skel["joints"], key_is_name=True)
     cad = yaml.safe_load(CAD_MODEL.read_text()) if CAD_MODEL.exists() else {}
-    cad = {k: v for k, v in cad.items() if not budget[v["budget"]].get("add_on")}
     cad_items = {p["budget"] for p in cad.values()}
+    if not covers:
+        cad = {k: v for k, v in cad.items() if not budget[v["budget"]].get("add_on")}
     bodies = [
         b for b in mirrored(skel["bodies"], key_is_name=False) if b["budget"] not in cad_items
     ]
@@ -207,6 +252,7 @@ def build() -> tuple[str, dict]:
         "thigh": z["left_hip_roll"] + z["left_hip_pitch"] + z["left_hip_yaw"] + z["left_knee"],
         "shin": z["left_ankle_pitch"],
         "upper_arm": z["left_shoulder_roll"] + z["left_shoulder_yaw"] + z["left_elbow"],
+        "forearm": z["left_wrist_yaw"],
         "shoulder_height": dims["hip_axis_height"] - z["waist_yaw"] - z["left_shoulder_pitch"],
     }
     for k, v in checks.items():
@@ -217,7 +263,7 @@ def build() -> tuple[str, dict]:
 
     # every budget item fully placed, except the add-ons (the CAD places those, later)
     placed: dict[str, float] = {}
-    for b in [*bodies, *cad.values()]:
+    for b in [*bodies, *(c for c in cad.values() if not budget[c["budget"]].get("add_on"))]:
         placed[b["budget"]] = placed.get(b["budget"], 0.0) + b["mass"]
     for k, v in budget.items():
         if v.get("add_on"):
@@ -312,20 +358,22 @@ def build() -> tuple[str, dict]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--check", action="store_true", help="fail if the URDF is out of date")
+    ap.add_argument("--check", action="store_true", help="fail if the URDFs are out of date")
     args = ap.parse_args()
-    text, summary = build()
+    outs = [(URDF_OUT, *build()), (COVERS_OUT, *build(covers=True))]
     if args.check:
-        if not URDF_OUT.exists() or URDF_OUT.read_text() != text:
-            print(f"{URDF_OUT.relative_to(ROOT)} is out of date: run python tools/build_urdf.py")
-            return 1
-        print("URDF up to date")
-        return 0
+        stale = [p for p, text, _ in outs if not p.exists() or p.read_text() != text]
+        for p in stale:
+            print(f"{p.relative_to(ROOT)} is out of date: run python tools/build_urdf.py")
+        if not stale:
+            print("URDFs up to date")
+        return 1 if stale else 0
     URDF_OUT.parent.mkdir(parents=True, exist_ok=True)
-    URDF_OUT.write_text(text)
-    print(
-        f"wrote {URDF_OUT.relative_to(ROOT)}: {len(summary)} links, {sum(summary.values()):.3f} kg"
-    )
+    for path, text, summary in outs:
+        path.write_text(text)
+        print(
+            f"wrote {path.relative_to(ROOT)}: {len(summary)} links, {sum(summary.values()):.3f} kg"
+        )
     return 0
 
 

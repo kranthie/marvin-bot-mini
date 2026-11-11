@@ -1,6 +1,6 @@
 # Marvin Bot Mini
 
-A ~0.6 m, ~3 kg, 23-DOF open humanoid on Feetech STS serial-bus servos (STS3250 legs, STS3215 12 V upper body), printed frame, Jetson Orin Nano Super 8 GB onboard, 3S battery. The miniature of Marvin Bot (the 1.41 m humanoid), with the same architecture. Currently in phase 0 (foundations).
+A ~0.6 m, ~3.6 kg, 27-DOF open humanoid on Feetech STS serial-bus servos (STS3250 legs, STS3215 12 V upper body, wrists and pincer grippers), printed frame, Jetson Orin Nano Super 8 GB onboard, 3S battery. The miniature of Marvin Bot (the 1.41 m humanoid), with the same architecture. Currently in phase 0 (foundations).
 
 ## Read first
 - `README.md`: overview and layout

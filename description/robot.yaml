@@ -13,8 +13,9 @@ robot:
   name: marvin_bot_mini
   version: "0.1"
   height: 0.600           # sole to the top of the head, standing straight
-  mass_target_kg: 3.0
-  mass_limit_kg: 3.5      # the full robot as it runs: battery and the add-on shells included
+  mass_target_kg: 3.6      # bare; 3.0 before the wrists, grippers and the stress check's frame
+  mass_limit_kg: 3.9      # the full robot as it runs, battery and shells included: the torque
+                          # checks pass at 3.79 kg with the shells (decisions 2026-11-11)
 
 # v0 targets, from the design brief; phase 1's CAD sets the real values. Proportions follow
 # Marvin Bot's (hip axis at about half the height, shoulders at about 0.8 of it).
@@ -27,9 +28,10 @@ dimensions:
   shoulder_width: 0.200    # outside of the shoulder servos
   shoulder_height: 0.480   # shoulder pitch axis above the floor
   upper_arm: 0.100         # shoulder pitch axis to elbow axis
-  forearm: 0.140           # elbow axis to the end of the hand stub (no wrist in v1); the arm is
-                           # 0.40 of the height, as Marvin Bot's, so the hands reach the floor
-                           # sitting and push the robot up (sim/mujoco/check_torques.py)
+  forearm: 0.080           # elbow axis to the wrist yaw servo's output face
+  hand: 0.080              # wrist output face to the fingertips (a two-jaw pincer); with the
+                           # forearm, 0.16 m, so the hands reach the floor sitting and push the
+                           # robot up (sim/mujoco/check_torques.py), as on Marvin Bot
   foot_length: 0.100
   foot_width: 0.055
 
@@ -44,37 +46,53 @@ joints:
   - {name: "{side}_hip_pitch",      axis: pitch, range: [-30, 120]}
   - {name: "{side}_hip_roll",       axis: roll,  range: [-30, 45]}
   - {name: "{side}_hip_yaw",        axis: yaw,   range: [-45, 45]}
-  - {name: "{side}_knee",           axis: pitch, range: [0, 140]}
+  - {name: "{side}_knee",           axis: pitch, range: [0, 135]}  # fully folded, the ankle reaches the hip roll yoke
   - {name: "{side}_ankle_pitch",    axis: pitch, range: [-45, 45]}
-  - {name: "{side}_ankle_roll",     axis: roll,  range: [-25, 25]}
+  - {name: "{side}_ankle_roll",     axis: roll,  range: [-15, 15]}  # the foot plate clears the roll servo over it (cad.check)
   # torso and head
   - {name: waist_yaw,               axis: yaw,   range: [-90, 90]}
   - {name: neck_yaw,                axis: yaw,   range: [-80, 80]}
-  - {name: neck_pitch,              axis: pitch, range: [-30, 45]}
-  # arms (4 DOF: no wrist in v1; a 1-DOF gripper may follow)
+  - {name: neck_pitch,              axis: pitch, range: [-20, 30]}  # the head's servo clears the neck yoke looking up, its chin the chest looking down
+  # arms: 4 DOF, a wrist yaw (about the forearm) and a one-servo pincer
   - {name: "{side}_shoulder_pitch", axis: pitch, range: [-60, 180]}
-  - {name: "{side}_shoulder_roll",  axis: roll,  range: [-15, 120]}
-  - {name: "{side}_shoulder_yaw",   axis: yaw,   range: [-90, 90]}
-  - {name: "{side}_elbow",          axis: pitch, range: [0, 135]}
+  - {name: "{side}_shoulder_roll",  axis: roll,  range: [-15, 120]}  # below -2° only with the arm forward (coupled_limits)
+  - {name: "{side}_shoulder_yaw",   axis: yaw,   range: [-30, 90]}  # turned out past 30°, the upper arm's sleeve meets the chest
+  - {name: "{side}_elbow",          axis: pitch, range: [0, 130]}  # folded further, the forearm meets the upper arm's sleeve
+  - {name: "{side}_wrist_yaw",      axis: yaw,   range: [-150, 150]}
+  - {name: "{side}_gripper",        axis: pitch, range: [0, 60]}     # 0 closed, + open
+
+# Limits that depend on another joint (Marvin Bot's form): the joint's lowest angle, piecewise
+# linear in the other joint's angle (degrees; beyond the first and last points their values hold).
+# Hanging straight, the arm reaches the torso's side at about -2° of shoulder roll; swung forward,
+# it can come in to -15° (python -m cad.check checks the points and the midpoints). The
+# controller and the retargeter enforce it.
+coupled_limits:
+  - {joint: "{side}_shoulder_roll", by: "{side}_shoulder_pitch", min: [[0, -2], [30, -2], [60, -15], [150, -15]]}
 
 # One servo drives each joint directly (no linkages at this size). The leg joints and the
 # shoulder pitch take the stronger STS3250 (the shoulder pitch for getting up from the back:
 # sim/mujoco/check_torques.py, sit-up); the rest of the arms, the waist and neck the STS3215 12 V. Buses: one per leg and one for the upper
 # body, so each bus's sync write and sync read fit well inside the control period.
 motors:
-  - {name: "{side}_hip_pitch",      model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_pitch"]}
-  - {name: "{side}_hip_roll",       model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_roll"]}
-  - {name: "{side}_hip_yaw",        model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_yaw"]}
-  - {name: "{side}_knee",           model: STS3250,      bus: "{side}_leg", drives: ["{side}_knee"]}
-  - {name: "{side}_ankle_pitch",    model: STS3250,      bus: "{side}_leg", drives: ["{side}_ankle_pitch"]}
-  - {name: "{side}_ankle_roll",     model: STS3250,      bus: "{side}_leg", drives: ["{side}_ankle_roll"]}
-  - {name: waist_yaw,               model: STS3215-C018, bus: upper,        drives: [waist_yaw]}
-  - {name: neck_yaw,                model: STS3215-C018, bus: upper,        drives: [neck_yaw]}
-  - {name: neck_pitch,              model: STS3215-C018, bus: upper,        drives: [neck_pitch]}
-  - {name: "{side}_shoulder_pitch", model: STS3250,      bus: upper,        drives: ["{side}_shoulder_pitch"]}
-  - {name: "{side}_shoulder_roll",  model: STS3215-C018, bus: upper,        drives: ["{side}_shoulder_roll"]}
-  - {name: "{side}_shoulder_yaw",   model: STS3215-C018, bus: upper,        drives: ["{side}_shoulder_yaw"]}
-  - {name: "{side}_elbow",          model: STS3215-C018, bus: upper,        drives: ["{side}_elbow"]}
+  # output: the side the horn faces, along the shaft; length: the way the case runs from the
+  # shaft (the shaft is 11.5 mm off the case's centre); both in the mount link's frame, left side
+  # torque_limit: the share of stall the servo's torque-limit register is set to at setup (the
+  # neck holds a 0.2 kg head: it needs under 10%, and its yoke is sized for 30%, cad/fea.py)
+  - {name: "{side}_hip_pitch",      model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_pitch"],      output: [0, 1, 0],  length: [1, 0, 0]}
+  - {name: "{side}_hip_roll",       model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_roll"],       output: [1, 0, 0],  length: [0, 0, 1]}
+  - {name: "{side}_hip_yaw",        model: STS3250,      bus: "{side}_leg", drives: ["{side}_hip_yaw"],        output: [0, 0, 1],  length: [1, 0, 0]}
+  - {name: "{side}_knee",           model: STS3250,      bus: "{side}_leg", drives: ["{side}_knee"],           output: [0, 1, 0],  length: [0, 0, 1]}
+  - {name: "{side}_ankle_pitch",    model: STS3250,      bus: "{side}_leg", drives: ["{side}_ankle_pitch"],    output: [0, 1, 0],  length: [0, 0, 1]}
+  - {name: "{side}_ankle_roll",     model: STS3250,      bus: "{side}_leg", drives: ["{side}_ankle_roll"],     output: [1, 0, 0],  length: [0, 1, 0]}
+  - {name: waist_yaw,               model: STS3215-C018, bus: upper,        drives: [waist_yaw],               output: [0, 0, 1],  length: [-1, 0, 0]}
+  - {name: neck_yaw,                model: STS3215-C018, bus: upper,        drives: [neck_yaw],                output: [0, 0, 1],  length: [-1, 0, 0], torque_limit: 0.3}
+  - {name: neck_pitch,              model: STS3215-C018, bus: upper,        drives: [neck_pitch],              output: [0, -1, 0], length: [-1, 0, 0], torque_limit: 0.3}  # in the head, its horn on the neck yoke
+  - {name: "{side}_shoulder_pitch", model: STS3250,      bus: upper,        drives: ["{side}_shoulder_pitch"], output: [0, 1, 0],  length: [0, 0, -1]}
+  - {name: "{side}_shoulder_roll",  model: STS3215-C018, bus: upper,        drives: ["{side}_shoulder_roll"],  output: [1, 0, 0],  length: [0, 0, 1]}
+  - {name: "{side}_shoulder_yaw",   model: STS3215-C018, bus: upper,        drives: ["{side}_shoulder_yaw"],   output: [0, 0, 1],  length: [-1, 0, 0]}  # in the upper arm, its horn up on the roll yoke
+  - {name: "{side}_elbow",          model: STS3215-C018, bus: upper,        drives: ["{side}_elbow"],          output: [0, 1, 0],  length: [-1, 0, 0]}
+  - {name: "{side}_wrist_yaw",      model: STS3215-C018, bus: upper,        drives: ["{side}_wrist_yaw"],      output: [0, 0, -1], length: [-1, 0, 0]}
+  - {name: "{side}_gripper",        model: STS3215-C018, bus: upper,        drives: ["{side}_gripper"],        output: [0, 1, 0],  length: [0, 0, 1]}
 
 # Feetech serial buses: half-duplex TTL at 1 Mbit/s, one USB adapter each. Each control cycle
 # sends one sync write (goal positions) and one sync read (position, speed, load) per bus.

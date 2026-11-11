@@ -38,7 +38,7 @@ FPS = 15  # WebP frame rate (the references are 30 fps)
 PLOT_H = 130  # height of the error strip in the WebP, pixels
 PLOT_MAX = 0.25  # m at the top of the strip
 # (label, bodies, colour) of the error curves; a hand is the point at its forearm's end
-FOREARM = 0.14  # m, robot.yaml forearm: elbow axis to the end of the hand
+FOREARM = 0.08  # m, robot.yaml forearm: elbow axis to the wrist, where the hand is measured
 CURVES = [
     ("hands", ("left_forearm_link", "right_forearm_link"), (220, 90, 40)),
     ("feet", ("left_foot_link", "right_foot_link"), (40, 140, 70)),
@@ -49,7 +49,7 @@ CURVES = [
 def clip_name(path: str) -> str:
     name = Path(path).name.split("__")[0]
     name = re.sub(r"(_keypoints)?(_retargeted)?(\.motion)?$", "", name)
-    return re.sub(r"^(soma_)?proto_", "", name)
+    return re.sub(r"^(soma_)?(proto_)?", "", name)
 
 
 def export(pred: str, ref: str, out: str, mujoco_rollout: str | None = None) -> None:

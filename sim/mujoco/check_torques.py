@@ -21,6 +21,7 @@ again when it exists. Passes if every case stays within the rule and stand and s
 Usage:
   python sim/mujoco/check_torques.py
   python sim/mujoco/check_torques.py --case squat --verbose
+  python sim/mujoco/check_torques.py --covers   # with the add-on shells
 
 Needs: pip install -e ".[sim]" and the URDF (python tools/build_urdf.py).
 """
@@ -190,11 +191,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--case", choices=sorted(CASES), action="append")
     ap.add_argument("--verbose", action="store_true", help="every joint, not only the worst")
+    ap.add_argument("--covers", action="store_true", help="with the add-on shells")
     args = ap.parse_args()
     servos = joint_servos()
     errors = []
     for name in args.case or CASES:
-        r = Robot(v_supply=V_EMPTY)
+        r = Robot(v_supply=V_EMPTY, covers=args.covers)
         taus, upright = CASES[name](r)
         peak, rms = taus.max(axis=0), np.sqrt((taus**2).mean(axis=0))
         limit = np.array(
@@ -225,7 +227,8 @@ def main() -> int:
                 errors.append(f"{name}: {r.names[i]} RMS {rms[i]:.2f} > rated {rated[i]:.2f} N·m")
         if name in MUST_STAY_UP and not upright:
             errors.append(f"{name}: the robot fell")
-    print(f"\nservos at {V_EMPTY} V (the pack's {RULE['at']}), mass {Robot().mass:.2f} kg")
+    mass = Robot(covers=args.covers).mass
+    print(f"\nservos at {V_EMPTY} V (the pack's {RULE['at']}), mass {mass:.2f} kg")
     for e in errors:
         print(f"ERROR: {e}")
     if errors:

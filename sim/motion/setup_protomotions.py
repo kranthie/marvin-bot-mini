@@ -6,11 +6,11 @@ after any change to it (as tools/build_urdf.py is rerun). Adapted from Marvin Bo
 
   protomotions/data/assets/mjcf/marvin_bot_mini.xml      the robot for simulation: the URDF's
       links, inertias and collision boxes, a free base, the servos' armature and stall torque,
-      and a 1 g hand body at the end of each forearm (the mini has no wrists), which the tracker
-      scores; the arms collide with the body and each other
+      and a 1 g hand body at each wrist, on the palm, which the tracker scores; the arms collide
+      with the body and each other
   protomotions/data/assets/urdf/for_retargeting/marvin_bot_mini.urdf
       the URDF without visuals, plus the frames the retargeter matches human keypoints to: a toe
-      6 cm ahead of each ankle, a hand frame at each forearm's end pointing down it, and a torso
+      6 cm ahead of each ankle, a hand frame at each wrist pointing down the forearm, and a torso
       frame (see TORSO_FRAME)
   protomotions/robot_configs/marvin_bot_mini.py     joint gains, effort and speed limits, stance,
       the bodies tracked, and registration in robot_configs/factory.py
@@ -41,11 +41,15 @@ DESC = ROOT / "description"
 URDF = DESC / "urdf" / "marvin_bot_mini.urdf"
 NAME = "marvin_bot_mini"
 SIDES = ("left", "right")
-ARMS = tuple(f"{s}_{part}" for s in SIDES for part in ("shoulder", "upper_arm", "forearm", "hand"))
+ARMS = tuple(
+    f"{s}_{part}"
+    for s in SIDES
+    for part in ("shoulder", "upper_arm", "forearm", "palm", "jaw", "hand")
+)
 _robot = yaml.safe_load((DESC / "robot.yaml").read_text())
 _acts = yaml.safe_load((DESC / "actuators.yaml").read_text())
 TOE = 0.06  # m ahead of the ankle axis, at its height (G1's 15 cm toe frame, scaled)
-FOREARM = _robot["dimensions"]["forearm"]  # elbow axis to the hand's end, where the hand body is
+FOREARM = _robot["dimensions"]["forearm"]  # elbow axis to the wrist, where the hand frame is
 HAND = math.pi  # the forearm frame's z points up the forearm; the hand frame's points down it
 # The retargeter puts a torso keypoint 0.18 m ahead of and 0.03 m above a frame called
 # torso_link (G1's, at its waist). As on Marvin Bot, the retargeting URDF calls the real torso
@@ -53,7 +57,7 @@ HAND = math.pi  # the forearm frame's z points up the forearm; the hand frame's 
 # source's torso point: 3.7 cm ahead of and 2.2 cm above the hips (Marvin Bot's 9 and 5.5 cm,
 # scaled by the shoulders' height above the hips). The torso origin is 4.5 cm above the hips.
 TORSO_FRAME = (0.037 - 0.18, 0.0, 0.022 - 0.03 - 0.045)
-MOTION_POSE: dict = {}  # robot.yaml's stance as it is (no wrists to turn the palms in)
+MOTION_POSE: dict = {}  # robot.yaml's stance as it is (wrists and pincers at 0)
 V_NOMINAL = _robot["power"]["pack"]["v_nominal"]
 
 
@@ -200,8 +204,8 @@ FACTORY_BRANCH = """    elif robot_name == "marvin_bot_mini":
 
 
 # The bodies the tracker's body rewards score: BeyondMimic's 14 (its G1 pelvis, hip roll, knee,
-# ankle roll, torso, shoulder roll, elbow and wrist links) on the mini (the hand bodies stand in
-# for the wrists), plus the head, as on Marvin Bot. Without
+# ankle roll, torso, shoulder roll, elbow and wrist links) on the mini (the hand bodies at the
+# wrists), plus the head, as on Marvin Bot. Without
 # the head nothing scored the neck, and the trained tracker shook it: the head turned at 46-60°/s
 # RMS standing still against 1-3°/s in the reference (upstream scores every body)
 TRACKED_BODIES = [
@@ -385,11 +389,12 @@ def mjcf(specs: dict) -> tuple[str, list[str]]:
     spec = mujoco.MjSpec.from_string(URDF.read_text())  # visuals are dropped by default
     spec.modelname = NAME
     spec.body("pelvis").add_freejoint(name="root")
-    # a 1 g hand body at the end of each forearm: the tracker scores it, and the checks measure
-    # the hands there (MuJoCo keeps a body without joints, welded to its parent)
+    # a 1 g hand body at each wrist, on the palm so it turns with the wrist: the tracker scores
+    # its position and orientation, and the checks measure the hands there (MuJoCo keeps a body
+    # without joints, welded to its parent)
     for side in SIDES:
-        hand = spec.body(f"{side}_forearm_link").add_body(
-            name=f"{side}_hand_link", pos=[0, 0, -FOREARM], mass=0.001, inertia=[1e-7] * 3
+        hand = spec.body(f"{side}_palm_link").add_body(
+            name=f"{side}_hand_link", pos=[0, 0, 0], mass=0.001, inertia=[1e-7] * 3
         )
         del hand
     order = [j.name for j in spec.joints if j.name in specs]

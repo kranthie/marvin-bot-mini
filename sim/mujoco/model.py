@@ -27,6 +27,7 @@ from sim.servo_model import joint_servos, servo_torque  # noqa: E402
 
 DESC = ROOT / "description"
 URDF = DESC / "urdf" / "marvin_bot_mini.urdf"
+COVERS_URDF = DESC / "urdf" / "marvin_bot_mini_covers.urdf"  # with the add-on shells
 ROBOT = yaml.safe_load((DESC / "robot.yaml").read_text())
 
 
@@ -37,9 +38,13 @@ def side_key(name: str) -> str:
 
 class Robot:
     def __init__(
-        self, v_supply: float | None = None, timestep: float = 0.001, visual: bool = False
+        self,
+        v_supply: float | None = None,
+        timestep: float = 0.001,
+        visual: bool = False,
+        covers: bool = False,
     ):
-        text = URDF.read_text()
+        text = (COVERS_URDF if covers else URDF).read_text()
         if visual:  # keep the URDF's visual geoms (MuJoCo drops them by default), for renders
             text = text.replace(
                 f'<robot name="{ROBOT["robot"]["name"]}">',
