@@ -49,9 +49,9 @@ def main() -> None:
     )
     lines = "\n".join(
         [
-            "0.6 m · 3.3 kg · 27 Feetech servos",
+            "0.6 m · 3.6 kg · 27 Feetech servos",
             "printed frame · Jetson Orin Nano Super",
-            "≈ $1.8k in parts",
+            "≈ $1.6k in parts",
         ]
     )
     d.text((60, 360), lines, font=sm, fill=(147, 161, 176), spacing=10)

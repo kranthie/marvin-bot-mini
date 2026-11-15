@@ -99,8 +99,8 @@ site/          the documentation website (Astro Starlight): 3-D home page, 3-D m
                synced from this repository's Markdown (site/README.md)
 ```
 
-Still to come, as phases reach them: `bench/` and `robot/` (phase 2), a harness generator in
-`electrical/`, and build guides.
+Still to come, as phases reach them: `bench/` and `robot/` (phase 2), and schematics and the
+power board in `electrical/`.
 
 ## Checks
 
@@ -121,9 +121,14 @@ python -m cad.build                 # part meshes, masses and sizes (cad_model.y
 python -m cad.export                # STL per part (outputs/), the workbook's made-parts sheet
 python sim/mujoco/check_torques.py  # held poses on the servo model, against the torque rule
 python sim/mujoco/check_symmetry.py # the training's left-right mirror rule against the model
+python -m cad.check                 # no part or shell meets another through the joints' ranges
+python -m cad.harness               # the servo buses' lead lengths
 pytest -q tests
 MUJOCO_GL=egl python tools/render_robot.py   # the renders above; MUJOCO_GL=egl without a display
 ```
+
+The stress check is not in CI (it takes minutes per part and tens of GB of memory):
+`pip install -e ".[cad,fea]"`, then `python -m cad.fea`.
 
 CI (`.github/workflows/ci.yml`) runs `tools/check_all.sh` on every push and pull request; the
 website is built and deployed by `.github/workflows/pages.yml`.

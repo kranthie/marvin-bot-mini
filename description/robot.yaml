@@ -15,7 +15,7 @@ robot:
   height: 0.600           # sole to the top of the head, standing straight
   mass_target_kg: 3.6      # bare; 3.0 before the wrists, grippers and the stress check's frame
   mass_limit_kg: 3.9      # the full robot as it runs, battery and shells included: the torque
-                          # checks pass at 3.79 kg with the shells (decisions 2026-11-11)
+                          # checks pass at 3.86 kg with the shells (decisions 2026-11-11)
 
 # v0 targets, from the design brief; phase 1's CAD sets the real values. Proportions follow
 # Marvin Bot's (hip axis at about half the height, shoulders at about 0.8 of it).

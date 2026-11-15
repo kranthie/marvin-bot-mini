@@ -7,8 +7,8 @@
 | ID | Requirement | Target | Level |
 |---|---|---|---|
 | R1 | Standing height | about 0.60 m | must |
-| R2 | Total mass with battery | ≤3.0 kg target bare; ≤3.5 kg hard limit as it runs, add-on shells included | must |
-| R3 | Joint names and layout | Marvin Bot's joints without the wrists and hands, so its motion pipeline carries over | must |
+| R2 | Total mass with battery | ≤3.6 kg target bare; ≤3.9 kg limit as it runs, add-on shells included (the torque checks pass at that mass; decisions 2026-11-11) | must |
+| R3 | Joint names and layout | Marvin Bot's joint names, so its motion pipeline carries over; a wrist yaw and a one-servo pincer in place of its wrists and hands | must |
 
 ## Mobility
 
